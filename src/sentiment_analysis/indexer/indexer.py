@@ -3,11 +3,12 @@ from whoosh.index import create_in, open_dir
 from whoosh.fields import *
 from whoosh.query import *
 from sentiment_analysis.context_extractor.context_extractor import extract_contexts
+from sentiment_analysis.readers.readers import read_lexicon
 import pandas as pd
 import os
 import itertools
 import math
-
+import time
 
 def create_index():
     schema = Schema(id=NUMERIC(stored=True, bits=64),
@@ -20,7 +21,7 @@ def create_index():
     writer = ix.writer()
 
     tweets = pd.read_csv(
-        'resources/training.1600000.processed.noemoticon.csv', encoding='latin-1')
+        'resources/datasets/training.1600000.processed.noemoticon.csv', encoding='latin-1')
 
     tweets.columns = ['polarity', 'id', 'date', 'flag', 'user', 'text']
     tweets = tweets[tweets.polarity != 2]
@@ -51,7 +52,7 @@ def get_termfreq_and_all_terms(docs, word, fieldname, searcher):
         postings.skip_to(docId)
         if postings.id() == docId:
             positive_word_freq += postings.weight()
-
+        
     return positive_word_freq, terms_in_positive
 
 
@@ -59,7 +60,6 @@ def sentiment_score(word, fieldname, searcher):
 
     myquery = And([Term(fieldname, word), Term('polarity', 4)])
     docs = sorted(searcher.search(myquery).docs())
-
     positive_word_freq, terms_in_positive = get_termfreq_and_all_terms(
         docs, word, fieldname, searcher)
 
@@ -67,6 +67,7 @@ def sentiment_score(word, fieldname, searcher):
     docs = sorted(searcher.search(myquery).docs())
     negative_word_freq, terms_in_negative = get_termfreq_and_all_terms(
         docs, word, fieldname, searcher)
+    print(positive_word_freq,terms_in_positive, negative_word_freq,terms_in_negative)
     sentiment_score = (math.log2((positive_word_freq*terms_in_negative) /
                                  (negative_word_freq*terms_in_positive)))
 
@@ -74,13 +75,20 @@ def sentiment_score(word, fieldname, searcher):
 
 
 if __name__ == "__main__":
-
-    ix = open_dir("index")
-    searcher = ix.searcher()
-    fieldname = 'content'
-    print(ix.schema)
-    for word in ['fuck','sad','nestle']:
-        print(word)
-        print(sentiment_score(word, fieldname, searcher))
-
-    searcher.close()
+    start = time.time()
+    create_index()
+    end = time.time()
+    print((end - start)/60000)
+    
+    # ix = open_dir("index")
+    # searcher = ix.searcher()
+    # print(ix.schema)
+    # for word in ['great','beautiful','nice','good','honest','terrible','shame','bad','ugly','negative']:
+    #     print(word)
+    #     try:
+    #         print(sentiment_score(word, 'content', searcher))
+    #         print(sentiment_score(word, 'postive_context', searcher))
+    #         print(sentiment_score(word, 'negative_context', searcher))
+    #     except:
+    #         pass
+    # searcher.close()
