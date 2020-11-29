@@ -17,18 +17,23 @@ def __get_next(neg_indices, all_indices):
 
 
 def extract_contexts(text):
-    punctuation = ['.', ',', ';', ':', ';', '!', '?']
+
+    # p = Punctuator('resources/models/Demo-Europarl-EN.pcl')
+    # text = (p.punctuate(text))
+    punctuation = ['.', ',', ';', ':', ';', '!', '?', 'but']
     negation_words = ["n't", "never", "no", "nothing", "nowhere", "noone", "nonenot",
                       "havent", "haven't", "hasnt", "hasn't" "hadnt", "hadn't",
                       "cant", "can't", "couldnt", "couldn't", "shouldnt", "shouldn't",
                       "wont", "won't", "wouldnt", "wouldn't", "dont", "don't", "doesnt",
-                      "doesn't", "didnt", "didn't", "isnt", "isn't", "arent", "aren't", "aint", "ain't","not"]
+                      "doesn't", "didnt", "didn't", "isnt", "isn't", "arent", "aren't", "aint", "ain't", "not"]
     tokens = remove_noise(text, remove_punctuation=False,
                           remove_stop_word=False)
     negation_indices = [i for i, token in enumerate(
         tokens) if negation_words.__contains__(token.lower())]
     punctuation_indices = [i for i, token in enumerate(
         tokens) if punctuation.__contains__(token.lower())]
+    if len(punctuation_indices) < 2:
+        punctuation_indices = [i+5 for i in negation_indices]
     mixed_indices = punctuation_indices
     mixed_indices.extend(negation_indices)
     postive_negative_context = __partition(tokens, __get_next(

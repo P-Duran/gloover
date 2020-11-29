@@ -8,7 +8,10 @@ from nltk.stem.wordnet import WordNetLemmatizer
 
 
 def remove_noise(text, remove_punctuation=True, remove_stop_word=True):
-    return word_tokenize(text)
+    try:
+        return word_tokenize(text)
+    except: 
+        return []
     lemmatizer = WordNetLemmatizer()
     stop_words = stopwords.words('english')
     cleaned_tokens = []
