@@ -4,12 +4,14 @@ import pandas as pd
 from sklearn.svm import LinearSVC
 from matplotlib import pyplot as plt
 from mlxtend.plotting import plot_decision_regions
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
 from sklearn.model_selection import train_test_split
 import sklearn
+from sklearn.neural_network import MLPClassifier
 import numpy as np
 from sklearn.pipeline import FeatureUnion, Pipeline
-from sentiment_analysis.classifier.features.features import TotalSentimentScore, PercentageContextNegative
+from sentiment_analysis.classifier.features.features import NegateWordsContext, PercentageContextNegative, PosTagCounter, TotalSentimentScore, WordsExtractor
+from sklearn.metrics import f1_score, precision_score, recall_score
 
 if __name__ == "__main__":
     data = pd.read_json(
@@ -33,24 +35,31 @@ if __name__ == "__main__":
     print(df2.polarity.value_counts())
 
     data_len = len(data)
+    ppl_neg = Pipeline([('_NEG words', NegateWordsContext()),
+                        ('word_ngrams', CountVectorizer(ngram_range=(1, 4), analyzer='word')), ])
     ppl = Pipeline([
         ('text_features', FeatureUnion([
+            ('postag', PosTagCounter()),
+            # ('v', Pipeline(
+            #     [('efe', WordsExtractor()), ('ge', CountVectorizer(ngram_range=(1, 4), analyzer='char'))])),
             ('char_ngrams', CountVectorizer(ngram_range=(1, 4), analyzer='char')),
-            ('word_ngrams', CountVectorizer(ngram_range=(1, 4), analyzer='word')),
+            ('neg', ppl_neg),
             ('tfidf', TfidfVectorizer()),
             ('%', PercentageContextNegative()),
             ('ss', TotalSentimentScore()),
 
         ])),
-        ('clf',   LinearSVC())
+        ('clf',   MLPClassifier(hidden_layer_sizes=(100, 100, 100), max_iter=500, alpha=0.0001,
+                     solver='sgd', verbose=10,  random_state=21, tol=0.000000001))
     ])
 
-    data_train, data_test, y_train, y_true = train_test_split(
-        df2['text'], df2['polarity'], test_size=0.1, train_size=0.5)
-    model = ppl.fit(data_train, y_train)
-    y_test = model.predict(data_test)
+    data_train, data_test, y_train, y_true=train_test_split(
+        df2['text'], df2['polarity'], test_size=0.1, train_size=0.1)
+    model=ppl.fit(data_train, y_train)
+    y_test=model.predict(data_test)
     print(y_test)
-    newvals = pd.Series([
+    newvals=pd.Series([
+                        "Don't buy this piece of shit, it's the worst ",
                         "Way overpriced. Joycons are flimsy. Standard Switch is $300 and yet it can only be bought for $500. Nintendo get your act together. ",
                         "Terrible purchase. Not usually this critical but I’m very surprised that this is even a real product and that a manufacturer can even pass this as able to sell. Took 3 times to just get past the set up, kept getting frozen and had to reset it. Screen was blurry and had a strange glare. Seemed like it was going to break at anytime. Poor product",
                         "Bought brand new, arrived and when plugged in and turned on, screen had a bright spot. Now there is a second bright spot- both spots are getting brighter and spreading, and the computer is glitchy. Amazon gave me 100- off, they weren't a fan of exchanging... So I bought a POS computer for 400- after discount of 100- and now it is malfunctioning... Riiiiight. Not the best customer service on this one. I'm not very happy. I'm a 40 year old mother back in full time college. Nobody has touched the screen. We JUST got it delivered yesterday at 215pm... Has not even been 24 hours. This is awful",
@@ -64,10 +73,13 @@ if __name__ == "__main__":
                         "We purchased this product for my son’s birthday. As he starts playing with it, we realize it’s in safe mode and he’s not able to download or open the products he wants to use. Microsoft says it’s a glitch in their system and we need to wait for them to work it out. Amazon says they will replace with another unit, but they can’t guarantee that unit won’t have the same issue. So, here we are with a brand new computer, unused. Huge let down. Disappointing product with disappointing options to make it right",
                         "BUYER BE AWARE: This computer has Microsoft 10S. This is scam software by Microsoft to force you to use only Microsoft apps from their deserted island wasteland of an app store. The computer will not allow you to do anything else. You can upgrade to a full version of Microsoft 10... for another $134. Hard pass. STAY AWAY from ALL computers with Microsoft 10S!! Absolute garbage software. "]
                         )
-    result = model.predict(newvals)
-    print(sklearn.metrics.accuracy_score([-1,-1,-1,1, 1, 1, 1, 1, -1, -1, -1, -1],
+    result=model.predict(newvals)
+    print(sklearn.metrics.accuracy_score([-1, -1, -1, -1, 1, 1, 1, 1, 1, -1, -1, -1, -1],
                                          result))
     print(sklearn.metrics.accuracy_score(y_true, y_test))
+    print(f1_score(y_test, y_true, average="macro"))
+    print(precision_score(y_test, y_true, average="macro"))
+    print(recall_score(y_test, y_true, average="macro"))
     # plot_decision_regions(X=X.values,
     #                       y=y.values,
     #                       clf=m1,

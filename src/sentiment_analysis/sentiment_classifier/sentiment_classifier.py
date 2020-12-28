@@ -9,7 +9,7 @@ import json
 class SentimentClassifier():
     def __init__(self):
         self.lexicon = read_lexicon('resources/lexicons/SentiWords_1.1.txt')
-        with open('data.json') as f:
+        with open('resources/lexicons/data.json') as f:
             self.dict = json.load(f)
 
     def __to_dict(self,lexicon):
