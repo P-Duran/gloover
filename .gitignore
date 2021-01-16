@@ -46,6 +46,7 @@ docs/_build/*
 cover/*
 resources/*
 index/*
+generated/*
 MANIFEST
 
 # Per-project virtualenvs

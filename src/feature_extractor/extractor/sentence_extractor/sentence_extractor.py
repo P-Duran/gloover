@@ -3,7 +3,8 @@ from feature_extractor.data_reader.data_reader import Review_Reader
 from nltk import sent_tokenize, word_tokenize
 import spacy
 import re
-
+import os.path
+import json
 
 def search_simple_in_text(text, review_id, words, nlp, result={}):
     sentences = sent_tokenize(text.lower())
@@ -35,11 +36,17 @@ def search_complex_in_text(text, review_id, words, nlp, result={}):
                     {'sentence': sentence, 'feature-start': start, 'feature-end': end}]
 
 
-def sentence_extractor(path):
+def sentence_extractor(path=None):
     nlp = spacy.load('en')
+    features_file = 'generated/features/features.json'
     rr = Review_Reader(path)
     reviews = rr.reviews_from_asin()
-    features = feature_extractor(reviews)
+    if (not os.path.isfile(features_file) and path):
+        features = feature_extractor(reviews,do_save = True)
+    else:
+        with open(features_file) as f:
+            features = json.load(f)
+
     simple_features = [sf['word'] for sf in features['simple']]
     complex_features = [sf['word'] for sf in features['complex']]
     data = {}

@@ -5,6 +5,9 @@ import spacy
 import re
 from sentiment_analysis.language_proccessing.language_proccesing import filter_tag
 from feature_extractor.data_reader.data_reader import Review_Reader
+import json
+import os
+
 
 
 def candidate_features(reviews):
@@ -83,7 +86,7 @@ def feature_selector(reviews, simple_features, complex_features=[]):
     return result, result_complex
 
 
-def feature_extractor(reviews,do_print=False):
+def feature_extractor(reviews, do_print=False, do_save=False):
     simple, complex = candidate_features(reviews)
     result, result_complex = feature_selector(reviews, simple, complex)
     if do_print:
@@ -99,11 +102,18 @@ def feature_extractor(reviews,do_print=False):
             if not result_complex[r] / len(reviews.reviewText) > 0.1:
                 print('NOPE')
             print(result_complex[r] / len(reviews.reviewText))
-    return {'simple':[{'word': s, 'confidence': result[s]['adj_count']/result[s]['appaerances']} for s in result if result[s]['adj_count']/result[s]['appaerances'] > 0.2],  'complex':[{'word': c, 'confidence': result_complex[c] / len(reviews.reviewText)} for c in result_complex if result_complex[c] / len(reviews.reviewText) > 0.1]}
-
+        
+    result =  {'simple': [{'word': s, 'confidence': result[s]['adj_count']/result[s]['appaerances']} for s in result if result[s]['adj_count']/result[s]['appaerances'] > 0.2],  'complex': [{'word': c, 'confidence': result_complex[c] / len(reviews.reviewText)} for c in result_complex if result_complex[c] / len(reviews.reviewText) > 0.1]}
+    if (do_save):
+        if not os.path.exists("generated/features/"):
+            os.makedirs("generated/features/")
+        with open('generated/features/features.json', 'w') as fp:
+            json.dump(result, fp)
+    return result
 
 if __name__ == "__main__":
     # create_index()
-    rr = Review_Reader('resources/datasets/reviews_Cell_Phones_and_Accessories_5.json')
+    rr = Review_Reader(
+        'resources/datasets/reviews_Cell_Phones_and_Accessories_5.json')
     reviews = rr.reviews_from_asin()
-    print(feature_extractor(reviews))
+    print(feature_extractor(reviews,do_save = True))
