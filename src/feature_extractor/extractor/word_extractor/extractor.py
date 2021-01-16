@@ -28,10 +28,13 @@ def feature_selector(reviews, simple_features, complex_features=[]):
         for f in complex_features:
             name = f[0]+' '+f[1]
             inv_name = f[1]+' '+f[0]
+            n_count = len(re.findall(name, text))
+            in_count = len(re.findall(inv_name, text))
+            if (n_count < in_count):
+                name = inv_name
             if not name in result_complex:
                 result_complex[name] = 0
-            result_complex[name] += len(re.findall(name, text))
-            result_complex[name] += len(re.findall(inv_name, text))
+            result_complex[name] += n_count + in_count
 
     def is_simple_feature(doc, simple_features, text, nouns, result):
         for token in doc.to_json()['tokens']:
@@ -96,11 +99,11 @@ def feature_extractor(reviews,do_print=False):
             if not result_complex[r] / len(reviews.reviewText) > 0.1:
                 print('NOPE')
             print(result_complex[r] / len(reviews.reviewText))
-    return [{'word': s, 'confidence': result[s]['adj_count']/result[s]['appaerances']} for s in result if result[s]['adj_count']/result[s]['appaerances'] > 0.2],  [{'word': c, 'confidence': result_complex[c] / len(reviews.reviewText)} for c in result_complex if result_complex[c] / len(reviews.reviewText) > 0.1]
+    return {'simple':[{'word': s, 'confidence': result[s]['adj_count']/result[s]['appaerances']} for s in result if result[s]['adj_count']/result[s]['appaerances'] > 0.2],  'complex':[{'word': c, 'confidence': result_complex[c] / len(reviews.reviewText)} for c in result_complex if result_complex[c] / len(reviews.reviewText) > 0.1]}
 
 
 if __name__ == "__main__":
     # create_index()
     rr = Review_Reader('resources/datasets/reviews_Cell_Phones_and_Accessories_5.json')
     reviews = rr.reviews_from_asin()
-    feature_extractor(reviews)
+    print(feature_extractor(reviews))
