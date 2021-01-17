@@ -51,6 +51,6 @@ MANIFEST
 
 # Per-project virtualenvs
 .venv*/
-
+.vscode/
 #Exclude
 !resources/.gitKeep
