@@ -1,0 +1,13 @@
+name: myenv
+channels:
+  - conda-forge
+dependencies:
+  - python=3.8
+  - mlxtend
+  - spacy
+  - pandas
+  - nltk
+  - swifter
+  - scikit-learn
+  - matplotlib
+  - whoosh
