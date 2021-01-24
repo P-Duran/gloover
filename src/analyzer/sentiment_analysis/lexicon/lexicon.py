@@ -1,5 +1,5 @@
 from whoosh.index import open_dir
-from sentiment_analysis.readers.readers import read_lexicon
+from analyzer.sentiment_analysis.readers.readers import read_lexicon
 import math as m
 from whoosh.query.compound import And
 from whoosh.query.terms import Term

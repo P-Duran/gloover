@@ -1,5 +1,5 @@
-from feature_extractor.extractor.word_extractor.extractor import feature_extractor
-from feature_extractor.data_reader.data_reader import Review_Reader
+from analyzer.feature_extractor.extractor.word_extractor.extractor import feature_extractor
+from analyzer.feature_extractor.data_reader.data_reader import Review_Reader
 from nltk import sent_tokenize, word_tokenize
 import spacy
 import re

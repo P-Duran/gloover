@@ -19,7 +19,7 @@ import argparse
 import sys
 import logging
 
-from sentiment_analysis import __version__
+from analyzer.sentiment_analysis import __version__
 
 __author__ = "pablo"
 __copyright__ = "pablo"

@@ -3,8 +3,8 @@ import pandas as pd
 from mlxtend.frequent_patterns import apriori
 import spacy
 import re
-from sentiment_analysis.language_proccessing.language_proccesing import filter_tag
-from feature_extractor.data_reader.data_reader import Review_Reader
+from analyzer.sentiment_analysis.language_proccessing.language_proccesing import filter_tag
+from analyzer.feature_extractor.data_reader.data_reader import Review_Reader
 import json
 import os
 

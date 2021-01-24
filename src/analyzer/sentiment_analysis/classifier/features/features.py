@@ -1,9 +1,9 @@
 from sklearn.base import BaseEstimator, TransformerMixin
-from sentiment_analysis.context_extractor.context_extractor import extract_contexts, extract_ordered_contexts
-from sentiment_analysis.sentiment_classifier.sentiment_classifier import SentimentClassifier
+from analyzer.sentiment_analysis.context_extractor.context_extractor import extract_contexts, extract_ordered_contexts
+from analyzer.sentiment_analysis.sentiment_classifier.sentiment_classifier import SentimentClassifier
 import swifter
 import itertools
-from sentiment_analysis.language_proccessing.language_proccesing import sentence_pos_tokenize, remove_noise
+from analyzer.sentiment_analysis.language_proccessing.language_proccesing import sentence_pos_tokenize, remove_noise
 import numpy as np
 import scipy as sp
 
@@ -12,7 +12,7 @@ class TotalSentimentScore(BaseEstimator, TransformerMixin):
     """Takes in dataframe, extracts road name column, outputs average word length"""
 
     def __init__(self):
-        self.senti_class = SentimentClassifier()
+        self.senti_class = SentimentClassifier('resources/lexicons/SentiWords_1.1.txt')
 
         pass
 

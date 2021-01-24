@@ -2,9 +2,9 @@ from whoosh.qparser import QueryParser
 from whoosh.index import create_in, open_dir
 from whoosh.fields import *
 from whoosh.query import *
-from sentiment_analysis.context_extractor.context_extractor import extract_contexts
-from sentiment_analysis.readers.readers import read_lexicon
-from sentiment_analysis.utils.utils import printProgressBar
+from analyzer.sentiment_analysis.context_extractor.context_extractor import extract_contexts
+from analyzer.sentiment_analysis.readers.readers import read_lexicon
+from analyzer.sentiment_analysis.utils.utils import printProgressBar
 import pandas as pd
 import os
 import itertools

@@ -11,3 +11,5 @@ dependencies:
   - scikit-learn
   - matplotlib
   - whoosh
+  - flask
+  - redis-py
