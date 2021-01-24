@@ -1,4 +1,4 @@
-from sentiment_analysis.language_proccessing.language_proccesing import remove_noise
+from analyzer.sentiment_analysis.language_proccessing.language_proccesing import remove_noise
 from nltk.collections import OrderedDict
 
 

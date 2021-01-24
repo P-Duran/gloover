@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from sentiment_analysis.skeleton import fib
+from analyzer.sentiment_analysis.skeleton import fib
 
 __author__ = "pablo"
 __copyright__ = "pablo"
