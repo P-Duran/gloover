@@ -13,3 +13,4 @@ dependencies:
   - whoosh
   - flask
   - redis-py
+  - joblib 
