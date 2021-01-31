@@ -1,12 +1,13 @@
-from analyzer.feature_extractor.extractor.word_extractor.extractor import feature_extractor
-from analyzer.feature_extractor.data_reader.data_reader import Review_Reader
-from nltk import sent_tokenize, word_tokenize
+from gloover_model.services.feature_extractor.feature_selector import feature_selector
+from gloover_model.readers.review_reader import ReviewReader
+from nltk import sent_tokenize
 import spacy
 import re
 import os.path
 import json
 
-def search_simple_in_text(text, review_id, words, nlp, result={}):
+
+def __search_simple_in_text__(text, review_id, words, nlp, result={}):
     sentences = sent_tokenize(text.lower())
     for sentence in sentences:
         doc = nlp(sentence)
@@ -18,10 +19,10 @@ def search_simple_in_text(text, review_id, words, nlp, result={}):
                 if not token_word in result[review_id]:
                     result[review_id][token_word] = []
                 result[review_id][token_word] += [
-                    {'sentence': sentence, 'feature-start': token['start'], 'feature-end':token['end']}]
+                    {'sentence': sentence, 'feature-start': token['start'], 'feature-end': token['end']}]
 
 
-def search_complex_in_text(text, review_id, words, nlp, result={}):
+def __search_complex_in_text__(text, review_id, words, nlp, result={}):
     sentences = sent_tokenize(text.lower())
     for sentence in sentences:
         for feature in words:
@@ -39,10 +40,10 @@ def search_complex_in_text(text, review_id, words, nlp, result={}):
 def sentence_extractor(path=None):
     nlp = spacy.load('en')
     features_file = 'generated/features/features.json'
-    rr = Review_Reader(path)
+    rr = ReviewReader(path)
     reviews = rr.reviews_from_asin()
-    if (not os.path.isfile(features_file) and path):
-        features = feature_extractor(reviews,do_save = True)
+    if not os.path.isfile(features_file) and path:
+        features = feature_selector(reviews, do_save=True)
     else:
         with open(features_file) as f:
             features = json.load(f)
@@ -51,8 +52,8 @@ def sentence_extractor(path=None):
     complex_features = [sf['word'] for sf in features['complex']]
     data = {}
     for index, row in reviews.iterrows():
-        search_simple_in_text(row.reviewText, row.unixReviewTime,simple_features , nlp, data)
-        search_complex_in_text(row.reviewText, row.unixReviewTime, complex_features, nlp, data)
+        __search_simple_in_text__(row.reviewText, row.unixReviewTime, simple_features, nlp, data)
+        __search_complex_in_text__(row.reviewText, row.unixReviewTime, complex_features, nlp, data)
     return data
 
 

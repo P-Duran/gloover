@@ -1,10 +1,11 @@
 FROM continuumio/miniconda3
 WORKDIR /sentianaly
+WORKDIR .
 # Create the environment:
 COPY environment.yml .
 RUN conda env create -f environment.yml
 # Flask app
-ENV FLASK_APP=src/server/app.py
+ENV FLASK_APP=gloover_ws/app.py
 ENV FLASK_RUN_HOST=0.0.0.0
 
 # Make RUN commands use the new environment:

@@ -1,4 +1,4 @@
-from analyzer.sentiment_analysis.language_proccessing.language_proccesing import remove_noise
+from gloover_model.services.generic.language_proccesing import remove_noise
 from nltk.collections import OrderedDict
 
 
@@ -18,11 +18,9 @@ def __get_next(neg_indices, all_indices):
 
 def extract_contexts(text, ordered=False):
     text = text.lower()
-    # p = Punctuator('resources/models/Demo-Europarl-EN.pcl')
-    # text = (p.punctuate(text))
     punctuation = ['.', ',', ';', ':', ';', '!', '?', 'but']
     negation_words = ["n't", "never", "no", "nothing", "nowhere", "noone", "nonenot",
-                      "havent", "haven't", "hasnt", "hasn't" "hadnt", "hadn't",
+                      "havent", "haven't", "hasnt", "hasn't", "hadnt", "hadn't",
                       "cant", "can't", "couldnt", "couldn't", "shouldnt", "shouldn't",
                       "wont", "won't", "wouldnt", "wouldn't", "dont", "don't", "doesnt",
                       "doesn't", "didnt", "didn't", "isnt", "isn't", "arent", "aren't", "aint", "ain't", "not"]
@@ -34,26 +32,24 @@ def extract_contexts(text, ordered=False):
         tokens) if punctuation.__contains__(token.lower())]
     mixed_indices = punctuation_indices
     mixed_indices.extend(negation_indices)
-    postive_negative_context = __partition(tokens, __get_next(
+    positive_negative_context = __partition(tokens, __get_next(
         negation_indices, sorted(mixed_indices)))
-    postitive_context = []
+    positive_context = []
     negative_context = []
 
-    for context in postive_negative_context:
+    for context in positive_negative_context:
         if len(set(context).intersection(negation_words)) == 0:
-            postitive_context.append(context)
+            positive_context.append(context)
         else:
             negative_context.append(context)
-    return postitive_context, negative_context,
+    return positive_context, negative_context,
 
 
 def extract_ordered_contexts(text):
     text = text.lower()
-    # p = Punctuator('resources/models/Demo-Europarl-EN.pcl')
-    # text = (p.punctuate(text))
     punctuation = ['.', ',', ';', ':', ';', '!', '?', 'but','...','..','....']
     negation_words = ["n't", "never", "no", "nothing", "nowhere", "noone", "nonenot",
-                      "havent", "haven't", "hasnt", "hasn't" "hadnt", "hadn't",
+                      "havent", "haven't", "hasnt", "hasn't", "hadnt", "hadn't",
                       "cant", "can't", "couldnt", "couldn't", "shouldnt", "shouldn't",
                       "wont", "won't", "wouldnt", "wouldn't", "dont", "don't", "doesnt",
                       "doesn't", "didnt", "didn't", "isnt", "isn't", "arent", "aren't", "aint", "ain't", "not"]
@@ -65,11 +61,11 @@ def extract_ordered_contexts(text):
         tokens) if punctuation.__contains__(token.lower())]
     mixed_indices = punctuation_indices
     mixed_indices.extend(negation_indices)
-    postive_negative_context = __partition(tokens, __get_next(
+    positive_negative_context = __partition(tokens, __get_next(
         negation_indices, sorted(mixed_indices)))
     ordered_contexts = []
 
-    for context in postive_negative_context:
+    for context in positive_negative_context:
         if len(set(context).intersection(negation_words)) == 0:
             ordered_contexts.append(('POS', context))
         else:

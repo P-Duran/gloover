@@ -1,18 +1,18 @@
 from sklearn.base import BaseEstimator, TransformerMixin
-from analyzer.sentiment_analysis.context_extractor.context_extractor import extract_contexts, extract_ordered_contexts
-from analyzer.sentiment_analysis.sentiment_classifier.sentiment_classifier import SentimentClassifier
-import swifter
+from gloover_model.services.classifier.context_extractor import extract_contexts, extract_ordered_contexts
+from gloover_model.services.classifier.sentiment_scorer import SentimentScorer
 import itertools
-from analyzer.sentiment_analysis.language_proccessing.language_proccesing import sentence_pos_tokenize, remove_noise
+from gloover_model.services.generic.language_proccesing import sentence_pos_tokenize, remove_noise
 import numpy as np
 import scipy as sp
+import swifter #Do Not Delete
 
 
 class TotalSentimentScore(BaseEstimator, TransformerMixin):
     """Takes in dataframe, extracts road name column, outputs average word length"""
 
     def __init__(self):
-        self.senti_class = SentimentClassifier('resources/lexicons/SentiWords_1.1.txt')
+        self.senti_class = SentimentScorer('resources/lexicons/SentiWords_1.1.txt')
 
         pass
 
@@ -27,7 +27,7 @@ class TotalSentimentScore(BaseEstimator, TransformerMixin):
         if len(n) > 0:
             pnscore = self.senti_class.sentence_sentiment_score(
                 ' '.join(list(itertools.chain.from_iterable(n))), polarity='negative')
-        return pscore+pnscore
+        return pscore + pnscore
 
     def transform(self, df, y=None):
         """The workhorse of this feature extractor"""
@@ -42,14 +42,14 @@ class PercentageContextNegative(BaseEstimator, TransformerMixin):
     """Takes in dataframe, extracts road name column, outputs average word length"""
 
     def __init__(self):
-
+        # No initialization needed
         pass
 
     def percentage_negative_context(self, text):
         """Helper code to compute average word length of a name"""
         p, n = extract_contexts(text)
 
-        return len(n)/(len(n)+len(p))
+        return len(n) / (len(n) + len(p))
 
     def transform(self, df, y=None):
         """The workhorse of this feature extractor"""
@@ -64,7 +64,7 @@ class NegateWordsContext(BaseEstimator, TransformerMixin):
     """Takes in dataframe, extracts road name column, outputs average word length"""
 
     def __init__(self):
-
+        # No initialization needed
         pass
 
     def add_negated_tag_words(self, text):
@@ -74,9 +74,9 @@ class NegateWordsContext(BaseEstimator, TransformerMixin):
         for sen in c:
             polarity, list_words = sen
             if (polarity == 'NEG'):
-                result += '_NEG '.join(list_words)+' '
+                result += '_NEG '.join(list_words) + ' '
             else:
-                result += ' '.join(list_words)+' '
+                result += ' '.join(list_words) + ' '
         return result
 
     def transform(self, df, y=None):
@@ -93,7 +93,7 @@ class PosTagCounter(BaseEstimator, TransformerMixin):
     """Takes in dataframe, extracts road name column, outputs average word length"""
 
     def __init__(self):
-
+        # No initialization needed
         pass
 
     def pos_tag_count(self, text):
@@ -118,7 +118,7 @@ class WordsExtractor(BaseEstimator, TransformerMixin):
     """Takes in dataframe, extracts road name column, outputs average word length"""
 
     def __init__(self):
-
+        # No initialization needed
         pass
 
     def word_extractor(self, text):
@@ -136,11 +136,12 @@ class WordsExtractor(BaseEstimator, TransformerMixin):
         """Returns `self` unless something different happens in train and test"""
         return self
 
+
 class WordsExtractor(BaseEstimator, TransformerMixin):
     """Takes in dataframe, extracts road name column, outputs average word length"""
 
     def __init__(self):
-
+        # No initialization needed
         pass
 
     def word_extractor(self, text):

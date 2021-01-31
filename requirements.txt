@@ -15,3 +15,16 @@
 # numpy==1.13.3
 # scipy==1.0
 #
+
+setuptools~=49.6.0
+pandas~=1.2.1
+flask~=1.1.2
+nltk~=3.4.4
+swifter~=0.305
+numpy~=1.19.5
+scipy~=1.6.0
+scikit-learn~=0.24.1
+spacy~=2.3.5
+mlxtend~=0.18.0
+joblib~=1.0.0
+redis
