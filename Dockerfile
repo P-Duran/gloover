@@ -3,7 +3,7 @@ FROM frolvlad/alpine-miniconda3
 ENV GROUP_ID=1000 \
     USER_ID=1000
 
-ENV FLASK_APP=gloover_ws/app.py
+ENV FLASK_APP=app.py
 ENV FLASK_RUN_HOST=0.0.0.0
 
 WORKDIR /var/www/
@@ -12,7 +12,9 @@ COPY . /var/www/
 
 RUN addgroup -g $GROUP_ID www
 RUN adduser -D -u $USER_ID -G www www -s /bin/sh
-
+RUN apk update && \
+    apk upgrade && \
+    apk add git
 # Create the environment:
 COPY environment.yml .
 RUN conda env create -f environment.yml
