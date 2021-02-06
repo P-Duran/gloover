@@ -2,18 +2,22 @@
 sentiment_analysis
 ==================
 
+How to run it
+====================================================
 
-Add a short description here!
+``docker-compose build``
+``docker-compose up``
 
+Api host & port
+---------------------
+localhost:5000
 
-Description
-===========
+Access mongodb
+---------------------
+*In MongoDb Compass*
 
-A longer description of your project goes here...
-
-
-Note
-====
-
-This project has been set up using PyScaffold 3.2.3. For details and usage
-information on PyScaffold see https://pyscaffold.org/.
+- Hostname = localhost
+- Port = 27017
+- Authentication = user/password
+    - user = root
+    - password = Secret
