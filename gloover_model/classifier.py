@@ -2,7 +2,7 @@ import sys
 
 import pandas as pd
 from sklearn.svm import LinearSVC
-from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.model_selection import train_test_split
 import sklearn
 import numpy as np
@@ -45,7 +45,7 @@ class Classifier:
                 return joblib.load(self.model_path)
             except Exception:
                 print('Problem loading the model, a new one would be trained', file=sys.stderr)
-        print('Problem loading the model, a new one would be trained', file=sys.stderr)
+
         ppl_neg = Pipeline([('_NEG words', NegateWordsContext()),
                             ('word_ngrams', CountVectorizer(ngram_range=(1, 4), analyzer='word')), ])
         ppl = Pipeline([
