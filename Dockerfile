@@ -6,6 +6,7 @@ ENV GROUP_ID=1000 \
 
 ENV FLASK_APP=gloover_ws/app.py
 ENV FLASK_RUN_HOST=0.0.0.0
+ENV FLASK_DEBUG=1
 
 WORKDIR /var/www/
 
@@ -20,7 +21,13 @@ RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 RUN python3 -m spacy download en
 RUN python3 -c "import nltk; nltk.download('punkt'); nltk.download('averaged_perceptron_tagger'); nltk.download('stopwords')"
-COPY . /var/www/
+
+COPY setup.py .
+COPY resources /var/www/resources
+COPY gloover_ws /var/www/gloover_ws
+COPY gloover_service /var/www/gloover_service
+COPY gloover_model /var/www/gloover_model
+RUN ls
 RUN python setup.py install
 
 EXPOSE 5000
