@@ -84,6 +84,14 @@ def todo():
     )
 
 
+@application.route('/info', methods=['GET'])
+def info():
+    return jsonify(
+        status=True,
+        message='Server is running!'
+    ), 201
+
+
 @application.route('/todo', methods=['POST'])
 def create_todo():
     data = request.get_json(force=True)
