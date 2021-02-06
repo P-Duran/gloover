@@ -11,12 +11,14 @@ services:
       MONGODB_PASSWORD: password1
       MONGODB_HOSTNAME: mongo
     volumes:
-      - .:/opt
+      - .:/var/www
     links:
       - mongo
   mongo:
     image: mongo
     container_name: mongo
+    ports:
+      - 27017:27017
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: Secret
