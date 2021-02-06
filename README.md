@@ -75,4 +75,4 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Authoring
 
-Made with <span style="color: #e25555;">&#9829;</span> by [**Pablo Durán**](https://coru.net/)
+Made with <span style="color: #e25555;">&#9829;</span> by [**Pablo Durán**](https://github.com/P-Duran)
