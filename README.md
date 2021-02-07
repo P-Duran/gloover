@@ -63,7 +63,7 @@ mongo> use gloover_db
 ```
 * Next, create a new user that will be allowed to access this database
 ```sh
-mongo> db.createUser({user: 'gloover_user', pwd: 'password1', roles: [{role: 'readWrite', db: 'flaskdb'}]})
+mongo> db.createUser({user: 'gloover_user', pwd: 'password1', roles: [{role: 'readWrite', db: 'gloover_db'}]})
 mongo> exit
 ```
 * Log in to the authenticated database:
