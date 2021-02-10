@@ -8,6 +8,6 @@
 from itemadapter import ItemAdapter
 
 
-class GlooverScrapperPipeline:
+class ScraperPipeline:
     def process_item(self, item, spider):
         return item
