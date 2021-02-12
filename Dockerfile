@@ -16,6 +16,7 @@ RUN apt-get -y update
 # Upgrade already installed packages:
 RUN apt-get -y upgrade
 RUN apt-get -y install git
+RUN apt-get -y install gcc
 RUN pip install --upgrade pip
 # Make RUN commands use the new environment:
 RUN pip install -r requirements.txt

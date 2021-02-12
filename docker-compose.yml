@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.7'
 services:
   gloover_ws:
     container_name: gloover_ws
