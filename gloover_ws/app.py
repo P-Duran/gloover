@@ -1,11 +1,15 @@
 import os
 import sys
+from datetime import datetime
 
 import pandas as pd
 from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
 
 from gloover_model.classifier import Classifier
+from gloover_model.db_manager import DbManager
+from gloover_service.objects.database.review import Review
+from gloover_service.objects.database.webpage import WebPage
 
 application = Flask(__name__)
 application.config["MONGO_URI"] = 'mongodb://' + os.environ['MONGODB_USERNAME'] + ':' + os.environ[
@@ -65,23 +69,22 @@ def fill_database():
     ), 201
 
 
-@application.route('/todo')
+@application.route('/test')
 def todo():
-    _todos = db.todo.find()
-
-    item = {}
-    data = []
-    for todo in _todos:
-        item = {
-            'id': str(todo['_id']),
-            'todo': todo['todo']
-        }
-        data.append(item)
-
-    return jsonify(
-        status=True,
-        data=data
-    )
+    try:
+        db_manager = DbManager()
+        db_manager.add_reviews([Review(product_name="product name", text="a text", user_name="user",
+                                       date=datetime(2014, 1, 1, 0, 0),
+                                       country="Spain", polarity=5, webpage="www.amazon.es")],
+                               WebPage("amazon", "www.amazon.com", 5))
+        return jsonify(
+            status=True
+        )
+    except Exception as e:
+        return jsonify(
+            error="Could not get this",
+            traceback=str(e)
+        )
 
 
 @application.route('/info', methods=['GET'])
