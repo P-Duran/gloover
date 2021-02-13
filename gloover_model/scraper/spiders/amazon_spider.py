@@ -14,10 +14,14 @@ class AmazonSpider(scrapy.Spider):
     name = 'amazon'
     allowed_domains = ['amazon.com']
     start_urls = [
-        'https://www.amazon.com/HP-24mh-FHD-Monitor-Built/product-reviews/B08BF4CZSV/ref=cm_cr_dp_d_show_all_btm?ie=UTF8&reviewerType=all_reviews']
+        ]
 
     product_page_extractor = selectorlib.Extractor.from_yaml_file(
         os.path.join(os.path.dirname(__file__), '../configurations/amazon/review.yml'))
+
+    def __init__(self, url='', *args, **kwargs):
+        super(AmazonSpider, self).__init__(*args, **kwargs)
+        self.start_urls = [url]
 
     def parse(self, response):
         # Extract data using Extractor

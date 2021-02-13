@@ -1,4 +1,7 @@
 version: '3.7'
+networks:
+  gloover_network:
+    driver: bridge
 services:
   gloover_ws:
     container_name: gloover_ws
@@ -14,6 +17,8 @@ services:
       - .:/var/www
     links:
       - mongo
+    networks:
+      - gloover_network
   mongo:
     image: mongo
     container_name: mongo
@@ -25,6 +30,8 @@ services:
     volumes:
       - mongo-data:/data/db
       - mongo-configdb:/data/configdb
+    networks:
+      - gloover_network
 volumes:
   mongo-data:
   mongo-configdb:
