@@ -2,12 +2,18 @@ import os
 import sys
 from datetime import datetime
 
-import pandas as pd
-from flask import Flask, request, jsonify
+import crochet
+from flask import Flask, request
+from flask import jsonify
 from flask_pymongo import PyMongo
+from scrapy import signals
+from scrapy.crawler import CrawlerRunner
+from scrapy.signalmanager import dispatcher
+from scrapy.utils.project import get_project_settings
 
 from gloover_model.classifier import Classifier
 from gloover_model.db_manager import DbManager
+from gloover_model.scraper.spiders.amazon_spider import AmazonSpider
 from gloover_service.objects.database.review import Review
 from gloover_service.objects.database.webpage import WebPage
 
@@ -17,6 +23,55 @@ application.config["MONGO_URI"] = 'mongodb://' + os.environ['MONGODB_USERNAME'] 
 classifier = Classifier(test_size=0.1, train_size=0.1)
 mongo = PyMongo(application)
 db = mongo.db
+s = get_project_settings
+crochet.setup()
+
+crawl_runner = CrawlerRunner()  # requires the Twisted reactor to run
+output_data = []
+
+runner = CrawlerRunner()
+output = []
+avaliable = True
+
+
+@application.route('/crawl')
+def crawl_url():
+    global avaliable
+    msg = 'Scraper starting'
+    if avaliable:
+        scrape_with_crochet()
+        msg = 'Scraper scraping...'
+        avaliable = False
+    return jsonify(avaliable=msg)  # Returns the scraped data after being running for 20 seconds.
+
+
+@application.route('/results')
+def results():
+    return jsonify(output_data=output_data)
+
+
+@application.route('/state')
+def state():
+    return jsonify(avaliable=avaliable)
+
+
+@crochet.run_in_reactor
+def scrape_with_crochet():
+    global runner
+    dispatcher.connect(_crawler_result, signal=signals.item_scraped)
+    eventual = runner.crawl(AmazonSpider, max_iterations=1)
+    eventual.addCallback(_spider_closed)
+    return eventual
+
+
+def _spider_closed(w):
+    global avaliable
+    avaliable = True
+
+
+def _crawler_result(item, response, spider):
+    global output_data
+    output_data.append(dict(item))
 
 
 @application.route('/analyze')
@@ -34,7 +89,6 @@ def hello():
 def get_reviews():
     _reviews = db.reviews.find()
     data = []
-
     print(_reviews, file=sys.stderr)
     for review in _reviews:
         del review['_id']
@@ -43,30 +97,6 @@ def get_reviews():
         status=True,
         data=data
     )
-
-
-@application.route('/database/reviews', methods=['POST'])
-def fill_database():
-    file = request.files['file']
-    dataframe = pd.read_json(file, lines=True)
-    print(dataframe.columns, file=sys.stderr)
-    reviews = []
-    for index, row in dataframe.iterrows():
-        reviews.append({
-            "userId": row.reviewerID,
-            "userName": row.reviewerName,
-            "asin": row.asin,
-            "text": row.reviewText,
-            "polarity": row.overall,
-            "unixReviewTime": row.unixReviewTime,
-            "url": "www.amazon.es",
-            "page": "amazon"
-        })
-    db.reviews.insert_many(reviews)
-    return jsonify(
-        status=True,
-        message='File imported nicely'
-    ), 201
 
 
 @application.route('/test')
@@ -107,9 +137,3 @@ def create_todo():
         status=True,
         message='To-do saved successfully!'
     ), 201
-
-
-if __name__ == "__main__":
-    ENVIRONMENT_DEBUG = os.environ.get("APP_DEBUG", True)
-    ENVIRONMENT_PORT = os.environ.get("APP_PORT", 5000)
-    application.run(host='0.0.0.0', port=ENVIRONMENT_PORT, debug=True)
