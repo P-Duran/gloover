@@ -19,7 +19,6 @@ RUN python3 -m spacy download en
 RUN python3 -c "import nltk; nltk.download('punkt'); nltk.download('averaged_perceptron_tagger'); nltk.download('stopwords')"
 #Copy all data needed from the project
 COPY setup.py .
-COPY run.py .
 COPY resources /var/www/resources
 COPY gloover_ws /var/www/gloover_ws
 COPY gloover_service /var/www/gloover_service

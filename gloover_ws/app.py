@@ -1,78 +1,21 @@
 import os
 import sys
 from datetime import datetime
-
-import crochet
-from flask import Flask, request
-from flask import jsonify
+from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
-from scrapy import signals
-from scrapy.crawler import CrawlerRunner
-from scrapy.signalmanager import dispatcher
-from scrapy.utils.project import get_project_settings
-
 from gloover_model.classifier import Classifier
 from gloover_model.db_manager import DbManager
-from gloover_model.scraper.spiders.amazon_spider import AmazonSpider
-from gloover_service.objects.database.review import Review
-from gloover_service.objects.database.webpage import WebPage
+from gloover_model.serialization.database.review import Review
+from gloover_model.serialization.database.webpage import WebPage
+from gloover_ws.blueprints.scraper_bp import scraper_api
 
 application = Flask(__name__)
+application.register_blueprint(scraper_api, url_prefix='/scraper')
 application.config["MONGO_URI"] = 'mongodb://' + os.environ['MONGODB_USERNAME'] + ':' + os.environ[
     'MONGODB_PASSWORD'] + '@' + os.environ['MONGODB_HOSTNAME'] + ':27017/' + os.environ['MONGODB_DATABASE']
 classifier = Classifier(test_size=0.1, train_size=0.1)
 mongo = PyMongo(application)
 db = mongo.db
-s = get_project_settings
-crochet.setup()
-
-crawl_runner = CrawlerRunner()  # requires the Twisted reactor to run
-output_data = []
-
-runner = CrawlerRunner()
-output = []
-avaliable = True
-
-
-@application.route('/crawl')
-def crawl_url():
-    global avaliable
-    msg = 'Scraper starting'
-    if avaliable:
-        scrape_with_crochet()
-        msg = 'Scraper scraping...'
-        avaliable = False
-    return jsonify(avaliable=msg)  # Returns the scraped data after being running for 20 seconds.
-
-
-@application.route('/results')
-def results():
-    return jsonify(output_data=output_data)
-
-
-@application.route('/state')
-def state():
-    return jsonify(avaliable=avaliable)
-
-
-@crochet.run_in_reactor
-def scrape_with_crochet():
-    global runner
-    dispatcher.connect(_crawler_result, signal=signals.item_scraped)
-    eventual = runner.crawl(AmazonSpider, max_iterations=1)
-    eventual.addCallback(_spider_closed)
-    return eventual
-
-
-def _spider_closed(w):
-    global avaliable
-    avaliable = True
-
-
-def _crawler_result(item, response, spider):
-    global output_data
-    output_data.append(dict(item))
-
 
 @application.route('/analyze')
 def hello():
