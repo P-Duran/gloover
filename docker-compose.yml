@@ -20,14 +20,12 @@ services:
     networks:
       - gloover_network
   gloover_scraper:
-    image: vimagick/scrapyd:py3
     container_name: gloover_scraper
-    entrypoint: scrapyrt -p 9080 -i 0.0.0.0
+    build: ./gloover_scraper
     ports:
-      - 9080
+      - 9080:9080
     volumes:
-      - ./gloover_scraper:/usr/src/app
-    working_dir: /usr/src/app/gloover_scraper
+      - ./gloover_scraper:/var/www/app
     networks:
       - gloover_network
   mongo:

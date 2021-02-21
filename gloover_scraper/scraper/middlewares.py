@@ -9,6 +9,11 @@ from scrapy import signals
 from itemadapter import is_item, ItemAdapter
 
 
+class ScraperAPIMiddleware(object):
+    def process_request(self, request, spider):
+        request.meta['proxy'] = 'http://scraperapi:91f827d26c173d7f2c6b8d458e57ff6b@proxy-server.scraperapi.com:8001'
+
+
 class ScraperSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the spider middleware does not modify the

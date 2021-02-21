@@ -13,15 +13,19 @@ class DbManager:
         if len(reviews) == 0:
             Logger.log_warning("The reviews are empty")
             return
-        if not all([review.webpage == reviews[0].webpage for review in reviews]):
+        if not all([review.domain == reviews[0].domain for review in reviews]):
             raise Exception("The reviews are not from the same source")
-        cls.add_website(webpage)
+        try:
+            cls.add_webpage(webpage)
+        except DocumentAlreadyExistsException:
+            Logger.log_warning("Webpage already exists")
         gloover_ws.app.db.reviews.insert_many([r.__dict__ for r in reviews])
 
     @classmethod
-    def add_website(cls, webpage: WebPage):
+    def add_webpage(cls, webpage: WebPage):
         try:
-            gloover_ws.app.db.websites.create_index([("name", -1)], unique=True)
+            gloover_ws.app.db.websites.create_index([("company_name", -1)], unique=True)
             gloover_ws.app.db.websites.insert_one(webpage.__dict__)
         except Exception as e:
-            raise DocumentAlreadyExistsException("Web page with name " + webpage.name + " already exists", e)
+            raise DocumentAlreadyExistsException("""Web page with "company_name": """ + webpage.company_name + """" 
+            already exists""", e)

@@ -20,7 +20,7 @@ class ScrapemeSpider(scrapy.Spider):
         # Extract data using Extractor
         data = self.listing_page_extractor.extract(response.text)
         self.iterations+=1
-        if 'next_page' in data and self.iterations < 10:
+        if 'next_page' in data and self.iterations < 3:
             yield scrapy.Request(data['next_page'], callback=self.parse
                                  )
         for p in data['product_page']:
@@ -33,4 +33,4 @@ class ScrapemeSpider(scrapy.Spider):
         # Extract data using Extractor
         product = self.product_page_extractor.extract(response.text)
         if product:
-            self.product_list.append(product)
+            yield product
