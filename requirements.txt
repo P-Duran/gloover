@@ -31,3 +31,6 @@ Flask-PyMongo~=2.2.0
 Scrapy~=2.4.1
 selectorlib~=0.16.0
 itemadapter~=0.2.0
+python-dateutil~=2.7.3
+crochet~=1.12.0
+scraperapi-sdk~=0.2.2

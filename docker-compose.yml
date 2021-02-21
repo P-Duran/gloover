@@ -19,6 +19,15 @@ services:
       - mongo
     networks:
       - gloover_network
+  gloover_scraper:
+    container_name: gloover_scraper
+    build: ./gloover_scraper
+    ports:
+      - 9080:9080
+    volumes:
+      - ./gloover_scraper:/var/www/app
+    networks:
+      - gloover_network
   mongo:
     image: mongo
     container_name: mongo
