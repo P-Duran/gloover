@@ -94,7 +94,8 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduc
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://gitlab.local.corunet.com/jlopez/mntee/-/tags).
+
+Nothing here
 
 
 ## Authoring
