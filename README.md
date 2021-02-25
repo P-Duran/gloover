@@ -20,7 +20,7 @@ To install and run the project you will need the following:
 
 #### Clone
 
-Clone this repo to your local machine: <https://github.com/P-Duran/sentiment_analysis.git>
+Clone this repo to your local machine: <https://github.com/P-Duran/gloover.git>
 
 #### Setup on Windows
 
@@ -37,15 +37,11 @@ Clone this repo to your local machine: <https://github.com/P-Duran/sentiment_ana
   
 * Make sure docker is running
   
-* Open a terminal
+* Open a terminal in the project's folder
   
-* Build the project
+* Start and build the project
 ```sh
-$ docker-compose build
-```
-* Start the project
-```sh
-$ docker-compose up
+$ docker-compose up --build
 ```
 
 ### Configure MongoDb
@@ -54,6 +50,8 @@ $ docker-compose up
 $ docker exec -it mongo bash
 ```
 * Once inside the container, log in to the MongoDB root administrative account
+
+*Mongo admin ceredentials can be found here [here](docker-compose.yml)
 ```sh
 root@893759837:/# mongo -u root -p
 ```
@@ -62,8 +60,9 @@ root@893759837:/# mongo -u root -p
 mongo> use gloover_db
 ```
 * Next, create a new user that will be allowed to access this database
+*Gloover app credentials can be found [here](docker-compose.yml)
 ```sh
-mongo> db.createUser({user: 'gloover_user', pwd: 'password1', roles: [{role: 'readWrite', db: 'gloover_db'}]})
+mongo> db.createUser({user: 'gloover_user', pwd: <password>, roles: [{role: 'readWrite', db: <user>}]})
 mongo> exit
 ```
 * Log in to the authenticated database:
