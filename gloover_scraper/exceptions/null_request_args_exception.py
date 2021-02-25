@@ -1,3 +1,6 @@
-class NullRequestArgsException(Exception):
+from .gloover_scraper_exception import GlooverScraperException
+
+
+class NullRequestArgsException(GlooverScraperException):
     def __init__(self, msg: str):
-        self.msg = msg
+        self.message = msg
