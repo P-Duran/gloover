@@ -51,7 +51,7 @@ $ docker exec -it mongo bash
 ```
 * Once inside the container, log in to the MongoDB root administrative account
 
-*Mongo admin ceredentials can be found here [here](docker-compose.yml)
+*Mongo admin ceredentials can be found here [here](docker-compose.yml)*
 ```sh
 root@893759837:/# mongo -u root -p
 ```
@@ -60,7 +60,8 @@ root@893759837:/# mongo -u root -p
 mongo> use gloover_db
 ```
 * Next, create a new user that will be allowed to access this database
-*Gloover app credentials can be found [here](docker-compose.yml)
+
+*Gloover app credentials can be found [here](docker-compose.yml)*
 ```sh
 mongo> db.createUser({user: 'gloover_user', pwd: <password>, roles: [{role: 'readWrite', db: <user>}]})
 mongo> exit
