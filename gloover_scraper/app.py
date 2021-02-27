@@ -1,3 +1,4 @@
+import datetime
 import glob
 import json
 import os
@@ -6,6 +7,8 @@ import subprocess
 import uuid
 from math import ceil
 
+from apscheduler.job import Job
+from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, jsonify, request
 
 from exceptions.gloover_scraper_exception import GlooverScraperException
@@ -13,23 +16,38 @@ from exceptions.null_request_args_exception import NullRequestArgsException
 from exceptions.unable_to_read_data_exception import UnableToReadDataException
 
 application = Flask(__name__)
-
+scheduler = BackgroundScheduler(daemon=True)
+scheduler.start()
 _ID_FILE_REGEX = "([^/]+/)*((?P<spider>[^/]+)/)+items-(?P<id>[^/]+).json"
 
 
-@application.route('/scrape')
+@application.route('/scrape', methods=['POST'])
 def scrape():
-    url = request.args.get('url')
-    max_requests = request.args.get('max_requests')
-    spider = request.args.get('spider_name')
-    file_id = uuid.uuid4()
-    file_name_path = f"generated/{spider}/items-{file_id}.json"
+    url = request.form.get('url')
+    max_requests = request.form.get('max_requests')
+    spider = request.form.get('spider_name')
+    trigger = request.form.get('trigger')
+
+    scraping_id = uuid.uuid4()
+    file_name_path = f"generated/{spider}/items-{scraping_id}.json"
     if not (url and max_requests and spider):
         raise NullRequestArgsException("url, max_requests or spider query params where null")
 
     os.makedirs(os.path.dirname(file_name_path), exist_ok=True)
-    os.system(f"""scrapy crawl {spider} -a url="{url}" -a max_requests={max_requests} -o {file_name_path}""")
-    return jsonify(id=file_id, items=read_items(file_name_path))
+    if trigger == 'date':
+        run_date = request.form.get('run_date')
+        job = scheduler.add_job(
+            run_spider, args=[spider, url, max_requests, file_name_path], id=scraping_id.__str__(), run_date=run_date)
+    elif trigger == 'interval':
+        hours = request.form.get('hours')
+        job = scheduler.add_job(
+            run_spider, args=[spider, url, max_requests, file_name_path], id=scraping_id.__str__(), hours=hours)
+    elif trigger == 'test':
+        job = scheduler.add_job(sensor, id=scraping_id.__str__(), trigger="interval", seconds=3)
+    else:
+        job = scheduler.add_job(
+            run_spider, args=[spider, url, max_requests, file_name_path], id=scraping_id.__str__())
+    return jsonify(id=scraping_id, items=job_to_json(job))
 
 
 @application.route('/spiders')
@@ -50,9 +68,14 @@ def get_containers():
         if file_match:
             file_id = file_match.group("id")
             file_spider = file_match.group("spider")
+            try:
+                mtime = datetime.datetime.fromtimestamp(os.path.getmtime(file))
+            except OSError:
+                mtime = datetime.datetime.fromtimestamp(0)
             if file_spider not in result:
                 result[file_spider] = {}
-            result[file_spider][file_id] = {"id": file_id, "spider": file_spider, "path": file}
+            result[file_spider][file_id] = {"id": file_id, "spider": file_spider, "path": file,
+                                            "last_modified": str(mtime)}
     return jsonify(containers=result)
 
 
@@ -76,7 +99,18 @@ def read_items(file_path):
         json_file = open(file_path)
         return json.load(json_file)
     except Exception as e:
-        raise UnableToReadDataException(e, "Unable to load the data from: " + file_path)
+        application.logger.error(UnableToReadDataException(e, "Unable to load the data from: " + file_path))
+        return []
+
+
+@application.route("/job", methods=['GET', 'POST'])
+def home():
+    if request.method == 'POST':
+        job = scheduler.add_job(sensor, trigger="interval", seconds=3)
+        return jsonify(job=job_to_json(job))
+    elif request.method == 'GET':
+        return jsonify(jobs=[job_to_json(job) for job in scheduler.get_jobs()])
+    return "Welcome Home :) !"
 
 
 @application.errorhandler(Exception)
@@ -89,5 +123,23 @@ def handle_exception(e):
 
 
 def process_exception(e: Exception, code: int):
-    application.logger.error(e)
     return jsonify(code=code, error=e.__dict__)
+
+
+def run_spider(spider, url, max_requests, file_name_path):
+    os.system(f"""scrapy crawl {spider} -a url="{url}" -a max_requests={max_requests} -o {file_name_path}""")
+
+
+def job_to_json(job: Job):
+    return {
+        "name": job.name,
+        "id": job.id,
+        "trigger": str(job.trigger),
+        "next_run_time": str(job.next_run_time)
+
+    }
+
+
+def sensor():
+    """ Function for test purposes. """
+    application.logger.debug(datetime.datetime.now())
