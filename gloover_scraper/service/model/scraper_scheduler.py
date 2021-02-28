@@ -39,6 +39,10 @@ class ScraperScheduler(object):
         self._job_manager.add_job(job2, None)
         return job
 
+    def cancel_job(self, job_id: str, ):
+        self._scheduler.remove_job(job_id)
+        self._job_manager.update_job_state(job_id, "cancelled")
+
     def get_jobs(self):
         return self._job_manager.get_jobs()
 

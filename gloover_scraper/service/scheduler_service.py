@@ -23,6 +23,9 @@ class SchedulerService(object):
         result = subprocess.run(['scrapy', 'list'], stdout=subprocess.PIPE).stdout.decode('utf-8').split("\n")
         return [spider for spider in result if spider != ""]
 
+    def cancel_scraper(self, job_id: str):
+        self._scheduler.cancel_job(job_id)
+
     def get_jobs(self):
         return self._scheduler.get_jobs()
 

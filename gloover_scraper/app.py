@@ -1,24 +1,18 @@
-import datetime
-import glob
-import json
-import os
-import re
 import time
-from math import ceil
 
 from apscheduler.job import Job
 from flask import Flask, jsonify, request, Response
 
 from exceptions.gloover_scraper_exception import GlooverScraperException
 from exceptions.null_request_args_exception import NullRequestArgsException
-from exceptions.unable_to_read_data_exception import UnableToReadDataException
 from service.model.objects.scrape_template import ScrapeTemplate
-from service.scraped_data_service import ScrapedDataService
 from service.scheduler_service import SchedulerService
+from service.scraped_data_service import ScrapedDataService
 
 application = Flask(__name__)
 scheduler_service = SchedulerService(application.logger)
 scraped_data_service = ScrapedDataService(application.logger)
+
 
 @application.route('/scrape', methods=['POST'])
 def scrape():
@@ -52,6 +46,12 @@ def jobs():
     else:
         return jsonify(jobs=scheduler_service.get_jobs(),
                        apscheduler_jobs=[job_to_json(j) for j in scheduler_service.get_apscheduler_jobs()])
+
+
+@application.route('/jobs/<scraper_id>', methods=['DELETE'])
+def cancel_job(scraper_id):
+    scheduler_service.cancel_scraper(scraper_id)
+    return jsonify(status='ok')
 
 
 @application.route('/spiders', methods=['GET'])
