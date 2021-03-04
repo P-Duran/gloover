@@ -63,12 +63,12 @@ mongo> use gloover_db
 
 *Gloover app credentials can be found [here](docker-compose.yml)*
 ```sh
-mongo> db.createUser({user: 'gloover_user', pwd: <password>, roles: [{role: 'readWrite', db: <user>}]})
+mongo> db.createUser({user: <user>', pwd: <password>, roles: [{role: 'readWrite', db: <database>}]})
 mongo> exit
 ```
 * Log in to the authenticated database:
 ```sh
-$ mongo -u gloover_user -p password1 --authenticationDatabase gloover_db
+$ mongo -u <user> -p <password> --authenticationDatabase <database>
 mongo> exit
 ```
 
