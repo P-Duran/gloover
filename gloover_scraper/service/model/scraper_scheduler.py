@@ -2,15 +2,18 @@ import os
 import sys
 import time
 
-from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_SUBMITTED, EVENT_JOB_ERROR
-from apscheduler.schedulers.background import BackgroundScheduler
+import requests
+from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_SUBMITTED
 from apscheduler.events import JobEvent
+from apscheduler.schedulers.background import BackgroundScheduler
 
 from .objects.job_manager import JobManager
 from .objects.scrape_template import ScrapeTemplate
 
 
 class ScraperScheduler(object):
+    _gloover_api = 'http://gloover_ws:5000/'
+
     def __init__(self):
         self._job_manager = JobManager()
         self._scheduler = BackgroundScheduler(daemon=True)
@@ -26,17 +29,21 @@ class ScraperScheduler(object):
         return job
 
     def add_scrape_date(self, scrape_template: ScrapeTemplate, run_date):
-        job = self._scheduler.add_job(
-            self._run_spider, args=scrape_template.generate_args_list(), id=scrape_template.scrape_id.__str__(),
-            run_date=run_date)
+        if run_date:
+            job = self._scheduler.add_job(
+                self._run_spider, args=scrape_template.generate_args_list(), id=scrape_template.scrape_id.__str__(),
+                run_date=run_date)
+        else:
+            job = self._scheduler.add_job(
+                self._run_spider, args=scrape_template.generate_args_list(), id=scrape_template.scrape_id.__str__())
         self._job_manager.add_job(job, scrape_template)
         return job
 
     def add_test_interval(self):
         job = self._scheduler.add_job(self._test_function, trigger="interval", seconds=10)
         job2 = self._scheduler.add_job(self._test_function)
-        self._job_manager.add_job(job, None)
-        self._job_manager.add_job(job2, None)
+        self._job_manager.add_job(job, ScrapeTemplate("test", "NONE", 0))
+        self._job_manager.add_job(job2, ScrapeTemplate("test", "NONE", 0))
         return job
 
     def cancel_job(self, job_id: str, ):
@@ -44,7 +51,7 @@ class ScraperScheduler(object):
         self._job_manager.update_job_state(job_id, "cancelled")
 
     def get_jobs(self):
-        return self._job_manager.get_jobs()
+        return self._job_manager.get_jobs(self._scheduler.get_jobs())
 
     def get_apscheduler_jobs(self):
         return self._scheduler.get_jobs()
@@ -59,6 +66,7 @@ class ScraperScheduler(object):
             state = "scheduled"
         else:
             state = "finished"
+            requests.post(self._gloover_api + "scraper/notify/" + event.job_id)
         self._job_manager.update_job_state(event.job_id, state)
 
     def _submitted_listener(self, event: JobEvent):
@@ -68,4 +76,3 @@ class ScraperScheduler(object):
     def _test_function(cls):
         time.sleep(5)
         print("TEST FUNCTION", file=sys.stderr)
-

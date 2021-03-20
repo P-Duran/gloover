@@ -1,21 +1,22 @@
 import os
-import sys
-from datetime import datetime
+
 from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
+
 from gloover_model.classifier import Classifier
-from gloover_model.db_manager import DbManager
-from gloover_model.serialization.database.review import Review
-from gloover_model.serialization.database.webpage import WebPage
+from gloover_model.exceptions.gloover_exception import GlooverException
+from gloover_ws.blueprints.database_bp import database_api
 from gloover_ws.blueprints.scraper_bp import scraper_api
 
 application = Flask(__name__)
 application.register_blueprint(scraper_api, url_prefix='/scraper')
+application.register_blueprint(database_api, url_prefix='/database')
 application.config["MONGO_URI"] = 'mongodb://' + os.environ['MONGODB_USERNAME'] + ':' + os.environ[
     'MONGODB_PASSWORD'] + '@' + os.environ['MONGODB_HOSTNAME'] + ':27017/' + os.environ['MONGODB_DATABASE']
 classifier = Classifier(test_size=0.1, train_size=0.1)
 mongo = PyMongo(application)
 db = mongo.db
+
 
 @application.route('/analyze')
 def hello():
@@ -28,38 +29,6 @@ def hello():
     return '"' + text + '" is ' + polarity + str(classification)
 
 
-@application.route('/database/reviews', methods=['GET'])
-def get_reviews():
-    _reviews = db.reviews.find()
-    data = []
-    print(_reviews, file=sys.stderr)
-    for review in _reviews:
-        del review['_id']
-        data.append(review)
-    return jsonify(
-        status=True,
-        data=data
-    )
-
-
-@application.route('/test')
-def todo():
-    try:
-        db_manager = DbManager()
-        db_manager.add_reviews([Review(product_name="product name", text="a text", user_name="user",
-                                       date=datetime(2014, 1, 1, 0, 0),
-                                       country="Spain", polarity=5, webpage="www.amazon.es")],
-                               WebPage("amazon", "www.amazon.com", 5))
-        return jsonify(
-            status=True
-        )
-    except Exception as e:
-        return jsonify(
-            error="Could not get this",
-            traceback=str(e)
-        )
-
-
 @application.route('/info', methods=['GET'])
 def info():
     return jsonify(
@@ -68,15 +37,23 @@ def info():
     ), 201
 
 
-@application.route('/todo', methods=['POST'])
-def create_todo():
-    data = request.get_json(force=True)
-    item = {
-        'todo': data['todo']
-    }
-    db.todo.insert_one(item)
+#@application.errorhandler(Exception)
+def handle_exception(e: Exception):
+    # pass through HTTP errors
+    if isinstance(e, GlooverException):
+        return process_exception(e, 500), 500
+    # now you're handling non-HTTP exceptions only
+    application.logger.error(e)
+    return str(e)
 
-    return jsonify(
-        status=True,
-        message='To-do saved successfully!'
-    ), 201
+
+@application.after_request
+def after_request(response):
+    header = response.headers
+    header['Access-Control-Allow-Origin'] = '*'
+    header["Access-Control-Allow-Methods"] = "GET, POST, PATCH, PUT, DELETE, OPTIONS"
+    return response
+
+
+def process_exception(e: Exception, code: int):
+    return jsonify(code=code, error=e.__dict__)

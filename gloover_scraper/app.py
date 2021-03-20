@@ -38,11 +38,11 @@ def jobs():
 
     def inner():
         while True:
-            time.sleep(1)
-            yield "<br>" + str([x['state'] for (y, x) in scheduler_service.get_jobs().items()]) + '<br>'
+            time.sleep(3)
+            yield 'data: %s\n\n' % scheduler_service.get_jobs().__str__()
 
     if stream:
-        return Response(inner(), mimetype='text/html')
+        return Response(inner(), mimetype="text/event-stream")
     else:
         return jsonify(jobs=scheduler_service.get_jobs(),
                        apscheduler_jobs=[job_to_json(j) for j in scheduler_service.get_apscheduler_jobs()])
@@ -79,7 +79,15 @@ def handle_exception(e):
     if isinstance(e, GlooverScraperException):
         return process_exception(e, 500), 500
     # now you're handling non-HTTP exceptions only
-    return e
+    return str(e)
+
+
+@application.after_request
+def after_request(response):
+    header = response.headers
+    header['Access-Control-Allow-Origin'] = '*'
+    header["Access-Control-Allow-Methods"] = "GET, POST, PATCH, PUT, DELETE, OPTIONS"
+    return response
 
 
 def process_exception(e: Exception, code: int):

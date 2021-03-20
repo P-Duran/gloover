@@ -1,12 +1,14 @@
 import datetime
+from typing import List
 
 from apscheduler.job import Job
 
 from .scrape_template import ScrapeTemplate
-from ..utils.readers import read_items
 
 
 class JobManager(object):
+    _DATETIME_FORMAT = "%d/%m/%Y, %H:%M:%S:%f"
+
     def __init__(self):
         self._storage = {}
 
@@ -23,14 +25,22 @@ class JobManager(object):
         del self._storage[job_id]
 
     def update_job_state(self, job_id: str, state: str):
-        if state == 'finished':
-            self._storage[job_id]['finish_time'] = datetime.datetime.now()
-        self._storage[job_id]['state'] = state
+        if job_id in self._storage:
+            if state == 'finished':
+                self._storage[job_id]['finish_time'] = datetime.datetime.now().strftime(self._DATETIME_FORMAT)
+            self._storage[job_id]['state'] = state
 
-    def get_jobs(self):
+    def get_jobs(self, jobs: List[Job]):
         for key in self._storage.keys():
+            if 'next_run_time' in self._storage[key]:
+                self._storage[key]['next_run_time'] = next(
+                    (job.next_run_time.strftime(self._DATETIME_FORMAT) for job in jobs if job.id == key),
+                    self._storage[key]['next_run_time'])
             if 'file_path' in self._storage[key]:
-                self._storage[key]['scraped_items'] = sum(1 for _ in open(self._storage[key]['file_path']))
+                try:
+                    self._storage[key]['scraped_items'] = sum(1 for _ in open(self._storage[key]['file_path']))
+                except Exception:
+                    pass
         return self._storage
 
     @classmethod
@@ -39,7 +49,7 @@ class JobManager(object):
             "id": job.id,
             "name": job.name,
             "trigger": str(job.trigger),
-            "next_run_time": str(job.next_run_time),
+            "next_run_time": job.next_run_time.strftime(cls._DATETIME_FORMAT),
             "state": 'scheduled',
             "url": scrape_template.url,
             "max_requests": scrape_template.max_requests,

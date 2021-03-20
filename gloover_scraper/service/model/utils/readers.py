@@ -2,7 +2,7 @@ import json
 import sys
 
 
-def read_items(file_path):
+def read_container_items(file_path):
     try:
         json_file = open(file_path)
         return json.load(json_file)

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import re
+import uuid
 from urllib.parse import urlparse
 
 import scrapy
@@ -52,9 +53,9 @@ class AmazonSpider(scrapy.Spider):
         except Exception:
             polarity = unprocessed_review['rating']
             max_polarity = unprocessed_review['rating']
-        product_review = {'productName': product_name, 'title': unprocessed_review['title'],
+        product_review = {'review_id': str(uuid.uuid4()), 'product_name': product_name, 'title': unprocessed_review['title'],
                           'text': unprocessed_review['content'], 'date': date, 'country': country,
-                          'author': unprocessed_review['author'], 'polarity': polarity, 'maxPolarity': max_polarity,
+                          'author': unprocessed_review['author'], 'polarity': polarity, 'max_polarity': max_polarity,
                           "domain": self.domain}
         print(self.domain)
         yield product_review

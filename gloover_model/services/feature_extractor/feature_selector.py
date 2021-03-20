@@ -1,16 +1,18 @@
-from mlxtend.preprocessing import TransactionEncoder
-import pandas as pd
-from mlxtend.frequent_patterns import apriori
-import spacy
 import re
-from gloover_model.services.generic.language_proccesing import filter_tag
+from typing import List
+
+import pandas as pd
+import spacy
+from mlxtend.frequent_patterns import apriori
+from mlxtend.preprocessing import TransactionEncoder
+
 from gloover_model.readers.review_reader import ReviewReader
-import json
-import os
+from gloover_model.serialization.product_feature import ProductFeature
+from gloover_model.serialization.review import Review
+from gloover_model.services.generic.language_proccesing import filter_tag
 
 
-def __candidate_features__(reviews):
-    text_reviews = reviews.reviewText
+def __candidate_features__(text_reviews: List[str]):
     text_reviews = [filter_tag(t) for t in text_reviews]
     te = TransactionEncoder()
     te_ary = te.fit(text_reviews).transform(
@@ -24,7 +26,7 @@ def __candidate_features__(reviews):
     return single_feature, complex_feature
 
 
-def __feature_extractor__(reviews, simple_features, complex_features=None):
+def __feature_extractor__(reviews: List[str], simple_features, complex_features=None):
     if complex_features is None:
         complex_features = []
 
@@ -52,7 +54,7 @@ def __feature_extractor__(reviews, simple_features, complex_features=None):
             if token['head'] in nouns and 'JJ' in token['tag']:
                 token['word'] = text[token['start']:token['end']]
                 nouns[token['head']]['adjectives'] = nouns[token['head']
-                                                    ]['adjectives'] + [token]
+                                                     ]['adjectives'] + [token]
         for index in nouns:
             word_data = nouns[index]
             word = nouns[index]['word']
@@ -77,7 +79,7 @@ def __feature_extractor__(reviews, simple_features, complex_features=None):
     nlp = spacy.load('en')
     result = {}
     result_complex = {}
-    for text in reviews.reviewText:
+    for text in reviews:
         text = text.lower()
         doc = nlp(text)
         nouns = {}
@@ -87,9 +89,10 @@ def __feature_extractor__(reviews, simple_features, complex_features=None):
     return result, result_complex
 
 
-def feature_selector(reviews, do_print=False, do_save=False):
-    simple, complex_features = __candidate_features__(reviews)
-    result, result_complex = __feature_extractor__(reviews, simple, complex_features)
+def feature_selector(product_asin: str, reviews: List[Review], do_print=False):
+    text_reviews = [review.text for review in reviews]
+    simple, complex_features = __candidate_features__(text_reviews)
+    result, result_complex = __feature_extractor__(text_reviews, simple, complex_features)
     if do_print:
         for e in result:
             print('\n------------' + e + '-------------')
@@ -100,25 +103,20 @@ def feature_selector(reviews, do_print=False, do_save=False):
             print([e['word'] for e in result[e]['adjectives']])
         for r in result_complex:
             print(r)
-            if not result_complex[r] / len(reviews.reviewText) > 0.1:
+            if not result_complex[r] / len(reviews) > 0.1:
                 print('NOPE')
-            print(result_complex[r] / len(reviews.reviewText))
+            print(result_complex[r] / len(reviews))
 
-    result = {'simple': [{'word': s, 'confidence': result[s]['adj_count'] / result[s]['appearances']} for s in result if
-                         result[s]['adj_count'] / result[s]['appearances'] > 0.2],
-              'complex': [{'word': c, 'confidence': result_complex[c] / len(reviews.reviewText)} for c in result_complex
-                          if result_complex[c] / len(reviews.reviewText) > 0.1]}
-    if do_save:
-        if not os.path.exists("generated/features/"):
-            os.makedirs("generated/features/")
-        with open('generated/features/features.json', 'w') as fp:
-            json.dump(result, fp)
-    return result
+    simple_features = [ProductFeature(product_asin, s, result[s]['adj_count'] / result[s]['appearances']) for s in
+                       result if
+                       result[s]['adj_count'] / result[s]['appearances'] >= 0.25]
+    complex_features = [ProductFeature(product_asin, c, min(result_complex[c] / len(reviews), 1)) for c in
+                        result_complex
+                        if result_complex[c] / len(reviews) >= 0.1]
+
+    return simple_features, complex_features
 
 
 if __name__ == "__main__":
     # create_index()
-    rr = ReviewReader(
-        'resources/datasets/reviews_Cell_Phones_and_Accessories_5.json')
-    reviews = rr.reviews_from_asin()
-    print(feature_selector(reviews, do_save=True))
+    ""
