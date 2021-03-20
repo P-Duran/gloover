@@ -1,11 +1,10 @@
 import datetime
 import glob
-import json
 import os
 import re
 from math import ceil
 
-from .model.utils.readers import read_items
+from .model.utils.readers import read_container_items
 
 
 class ScrapedDataService(object):
@@ -19,7 +18,7 @@ class ScrapedDataService(object):
         for file in glob.glob('generated/**/*.json'):
             if file.endswith("items-" + container_id + ".json"):
                 file_path = file
-        items = read_items(file_path)
+        items = read_container_items(file_path)
         limited_items = items[limit * (page - 1):limit * page]
         pagination = {"page": page, "last_page": ceil(len(items) / limit), "limit": limit,
                       "page_items": len(limited_items),
