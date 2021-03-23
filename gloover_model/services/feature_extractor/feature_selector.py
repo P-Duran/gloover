@@ -6,8 +6,7 @@ import spacy
 from mlxtend.frequent_patterns import apriori
 from mlxtend.preprocessing import TransactionEncoder
 
-from gloover_model.readers.review_reader import ReviewReader
-from gloover_model.serialization.product_feature import ProductFeature
+from gloover_model.serialization.product_feature import ProductFeature, FeatureType
 from gloover_model.serialization.review import Review
 from gloover_model.services.generic.language_proccesing import filter_tag
 
@@ -107,12 +106,14 @@ def feature_selector(product_asin: str, reviews: List[Review], do_print=False):
                 print('NOPE')
             print(result_complex[r] / len(reviews))
 
-    simple_features = [ProductFeature(product_asin, s, result[s]['adj_count'] / result[s]['appearances']) for s in
-                       result if
-                       result[s]['adj_count'] / result[s]['appearances'] >= 0.25]
-    complex_features = [ProductFeature(product_asin, c, min(result_complex[c] / len(reviews), 1)) for c in
-                        result_complex
-                        if result_complex[c] / len(reviews) >= 0.1]
+    simple_features = [
+        ProductFeature(product_asin, s, result[s]['adj_count'] / result[s]['appearances'], FeatureType.SIMPLE)
+        for s in result
+        if result[s]['adj_count'] / result[s]['appearances'] >= 0.25]
+    complex_features = [
+        ProductFeature(product_asin, c, min(result_complex[c] / len(reviews), 1), FeatureType.COMPLEX)
+        for c in result_complex
+        if result_complex[c] / len(reviews) >= 0.1]
 
     return simple_features, complex_features
 

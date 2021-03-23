@@ -57,7 +57,7 @@ def sentence_extractor(reviews: List[Review], s_features: List[ProductFeature], 
         for feature in data[review_id].keys():
             for feature_sentence in data[review_id][feature]:
                 try:
-                    feature_id = [f.feature_id for f in search_array if f.word == feature][0]
+                    feature_id = [f.id for f in search_array if f.word == feature][0]
                     yield FeatureSentence(review_id, feature_id, feature, feature_sentence['sentence'],
                                           feature_sentence['feature-start'],
                                           feature_sentence['feature-end'])

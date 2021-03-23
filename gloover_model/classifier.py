@@ -1,5 +1,9 @@
+import glob
 import os
+import re
 import sys
+import uuid
+from typing import List
 
 import joblib
 import numpy as np
@@ -10,57 +14,49 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.svm import LinearSVC
 
+from gloover_model.serialization.review import Review
 from gloover_model.services.classifier.features import NegateWordsContext, PercentageContextNegative, PosTagCounter, \
     TotalSentimentScore
+from gloover_service.utils.logger import Logger
 
-DEFAULT_MODEL_PATH = 'resources/models/classifierModel.mdl'
+DEFAULT_MODEL_PATH = 'resources/models/'
 DEFAULT_DATASET_PATH = 'resources/datasets/reviews_Cell_Phones_and_Accessories_5.json'
 
 
 class Classifier:
+    _MODEL_REGEX = "([^/]+/)*(?P<id>[^/]+).mdl"
+    _MODEL_CONTAINER_REGEX = "resources/**/*.mdl"
 
-    def __init__(self, model_path=DEFAULT_MODEL_PATH,
-                 train_size=0.6, test_size=0.4, update_existent=False):
-        self._update_existent = update_existent
-        self.data_size = {"train": train_size, "test": test_size}
-        self.model_path = model_path
-        self.data = None
-        self.data_train, self.data_test, self.y_train, self.y_true = None, None, None, None
-        self.initialized = False
+    def __init__(self):
         self.model = None
 
-    def intitialize(self, dataset=None):
-        self.initialized = True
-        if dataset:
-            self.data = self._filter_dataset_(dataset)
-            self.data_train, self.data_test, self.y_train, self.y_true = train_test_split(
-                self.data['text'], self.data['polarity'], test_size=self.data_size["test"],
-                train_size=self.data_size["train"])
-        self._load_model()
-
-    def test_model(self):
-        if not self.initialized:
-            raise Exception("Classifier not initialized")
-        y_test = self.model.predict(self.data_test)
-        return sklearn.metrics.accuracy_score(self.y_true, y_test)
-
     def classify(self, reviews):
-        if not self.initialized:
-            raise Exception("Classifier not initialized")
         return self.model.predict(pd.Series(reviews))
 
-    def _save_model(self, model):
-        os.makedirs(os.path.dirname(self.model_path), exist_ok=True)
-        joblib.dump(model, self.model_path)
+    def get_saved_models(self, limit=None):
+        glob_regex = self._MODEL_CONTAINER_REGEX
+        model_ids = []
+        retrieved = 0
+        for file in glob.glob(glob_regex):
+            if limit is not None and retrieved >= limit:
+                return model_ids
+            file_match = re.search(self._MODEL_REGEX, file)
+            model_id = file_match.group("id")
+            model_ids.append(model_id)
+            retrieved += 1
+        return model_ids
 
-    def _load_model(self):
-        if not self._update_existent:
-            try:
-                return joblib.load(self.model_path)
-            except Exception:
-                print('Problem loading the model, a new one would be trained', file=sys.stderr)
-        if not self.data:
-            raise Exception("No dataset was passed in init function")
+    def load_model(self, model_id: str):
+        try:
+            model_path = DEFAULT_MODEL_PATH + '/' + model_id + '.mdl'
+            self.model = joblib.load(model_path)
+            Logger.log_warning("The model with id '" + model_id + "' was loaded into the classifier")
+            return model_id
+        except Exception:
+            raise Exception("The model with id '" + model_id + "' could not be loaded")
+
+    def create_model(self, dataset: List[Review], model_id=None):
+        data, data_train, data_test, y_train, y_true = self._initialize_required_data(dataset)
         ppl_neg = Pipeline([('_NEG words', NegateWordsContext()),
                             ('word_ngrams', CountVectorizer(ngram_range=(1, 4), analyzer='word')), ])
         ppl = Pipeline([
@@ -78,9 +74,37 @@ class Classifier:
             ])),
             ('clf', LinearSVC())
         ])
-        model = ppl.fit(self.data_train, self.y_train)
-        self._save_model(model)
-        return model
+        self.model = ppl.fit(data_train, y_train)
+        if model_id is None:
+            model_id = uuid.uuid4().__str__()
+        self._save_model(self.model, model_id)
+        accuracy = self._test_model(data_test, y_true)
+        return model_id, accuracy
+
+    def load_first_model(self):
+        models = self.get_saved_models(1)
+        if len(models) == 0:
+            return False
+        else:
+            self.load_model(models[0])
+            return True
+
+    def _initialize_required_data(self, dataset: List[Review], train_size=0.6, test_size=0.4):
+        data = self._filter_dataset_(pd.DataFrame(dataset))
+        data_train, data_test, y_train, y_true = train_test_split(
+            data['text'], data['polarity'], test_size=test_size,
+            train_size=train_size)
+        return data, data_train, data_test, y_train, y_true
+
+    def _test_model(self, data_test, y_true):
+        """Probably better to test the model once you have created it"""
+        y_test = self.model.predict(data_test)
+        return sklearn.metrics.accuracy_score(y_true, y_test)
+
+    def _save_model(self, model, model_id: str):
+        model_path = DEFAULT_MODEL_PATH + "/" + model_id + ".mdl"
+        os.makedirs(os.path.dirname(model_path), exist_ok=True)
+        joblib.dump(model, model_path)
 
     def _filter_dataset_(self, data):
         data.polarity[data.polarity < 2.5] = -1

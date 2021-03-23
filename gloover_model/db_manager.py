@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Generator
 
 from pymongo.errors import BulkWriteError
 
@@ -34,7 +34,7 @@ class DbManager:
             already exists""", e)
 
     @classmethod
-    def get_reviews(cls, asin, limit=0, page=1) -> List[Review]:
+    def get_reviews(cls, asin=None, limit=0, page=1) -> List[Review]:
         skips = limit * (page - 1)
         cursor = gloover_ws.app.db.reviews.find().skip(skips).limit(limit)
         return [Review.from_json(review) for review in cursor]
@@ -48,12 +48,25 @@ class DbManager:
         try:
             gloover_ws.app.db.features.create_index([("asin", -1), ("word", -1)], unique=True)
             gloover_ws.app.db.features.insert_many(features, ordered=False)
-        except BulkWriteError:
-            Logger.log_warning("ProductFeatures Duplicates found in MongoDB")
+            return [f.id for f in features]
+        except BulkWriteError as e:
+            Logger.log_warning(e.details["writeErrors"][0]['errmsg'])
+            duplicated = [error["op"]["id"] for error in e.details["writeErrors"]]
+            return [f.id for f in features if f.id not in duplicated]
 
     @classmethod
-    def add_feature_sentences(cls, feature_sentences):
+    def get_product_features(cls, asin: str) -> List[ProductFeature]:
+        features = gloover_ws.app.db.features.find({"asin": asin})
+        return [ProductFeature.from_json(f) for f in features]
+
+    @classmethod
+    def add_feature_sentences(cls, feature_sentences: Generator):
         try:
-            gloover_ws.app.db.feature_sentences.insert_many(feature_sentences)
-        except Exception:
-            Logger.log_warning("FeatureSentences could not be added to MongoDB")
+            gloover_ws.app.db.feature_sentences.create_index(
+                [("sentence", -1), ("review_id", -1), ("start", -1), ("end", -1)],
+                unique=True)
+            inserted = gloover_ws.app.db.feature_sentences.insert_many(feature_sentences)
+            return 'ok', inserted.inserted_ids
+        except BulkWriteError as e:
+            Logger.log_warning(e.details["writeErrors"])
+            return 'error', e.details["writeErrors"]

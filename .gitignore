@@ -46,6 +46,7 @@ cover/*
 resources/*
 index/*
 generated/*
+gloover_scraper/generated/*
 MANIFEST
 
 # Per-project virtualenvs
