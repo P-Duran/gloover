@@ -24,4 +24,14 @@ def update_features():
     asin = request.form.get('product_asin')
     if not asin:
         raise NullRequestArgsException("product_asin form param can not be null")
-    return jsonify(status=DatabaseService.update_product_features(asin))
+    data = DatabaseService.update_product_features(asin)
+    return jsonify(data=data)
+
+
+@database_api.route('/features/sentences/update', methods=['PUT'])
+def update_feature_sentences():
+    asin = request.form.get('product_asin')
+    if not asin:
+        raise NullRequestArgsException("product_asin form param can not be null")
+    data = DatabaseService.update_product_feature_sentences(asin)
+    return jsonify(data=data)
