@@ -1,7 +1,4 @@
-import glob
 import os
-import re
-import sys
 import uuid
 from typing import List
 
@@ -24,33 +21,20 @@ DEFAULT_DATASET_PATH = 'resources/datasets/reviews_Cell_Phones_and_Accessories_5
 
 
 class Classifier:
-    _MODEL_REGEX = "([^/]+/)*(?P<id>[^/]+).mdl"
-    _MODEL_CONTAINER_REGEX = "resources/**/*.mdl"
 
     def __init__(self):
         self.model = None
+        self.model_id = None
 
     def classify(self, reviews):
         return self.model.predict(pd.Series(reviews))
-
-    def get_saved_models(self, limit=None):
-        glob_regex = self._MODEL_CONTAINER_REGEX
-        model_ids = []
-        retrieved = 0
-        for file in glob.glob(glob_regex):
-            if limit is not None and retrieved >= limit:
-                return model_ids
-            file_match = re.search(self._MODEL_REGEX, file)
-            model_id = file_match.group("id")
-            model_ids.append(model_id)
-            retrieved += 1
-        return model_ids
 
     def load_model(self, model_id: str):
         try:
             model_path = DEFAULT_MODEL_PATH + '/' + model_id + '.mdl'
             self.model = joblib.load(model_path)
             Logger.log_warning("The model with id '" + model_id + "' was loaded into the classifier")
+            self.model_id = model_id
             return model_id
         except Exception:
             raise Exception("The model with id '" + model_id + "' could not be loaded")
@@ -74,20 +58,12 @@ class Classifier:
             ])),
             ('clf', LinearSVC())
         ])
-        self.model = ppl.fit(data_train, y_train)
+        model = ppl.fit(data_train, y_train)
         if model_id is None:
             model_id = uuid.uuid4().__str__()
-        self._save_model(self.model, model_id)
+        self._save_model(model, model_id)
         accuracy = self._test_model(data_test, y_true)
         return model_id, accuracy
-
-    def load_first_model(self):
-        models = self.get_saved_models(1)
-        if len(models) == 0:
-            return False
-        else:
-            self.load_model(models[0])
-            return True
 
     def _initialize_required_data(self, dataset: List[Review], train_size=0.6, test_size=0.4):
         data = self._filter_dataset_(pd.DataFrame(dataset))
@@ -120,5 +96,6 @@ class Classifier:
 
 
 if __name__ == "__main__":
-    classifier = Classifier(test_size=0.2, train_size=0.2, update_existent=True)
-    print(classifier.classify(['This is the best']))
+    ""
+    # classifier = Classifier(test_size=0.2, train_size=0.2, update_existent=True)
+    # print(classifier.classify(['This is the best']))
