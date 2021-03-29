@@ -3,6 +3,7 @@ import json
 import requests
 
 from gloover_model.db_manager import DbManager
+from gloover_model.serialization.product import Product
 from gloover_model.serialization.review import Review
 from gloover_model.serialization.webpage import WebPage
 from gloover_service.utils.network import NetworkUtils
@@ -31,6 +32,10 @@ class ScraperService:
                 "page_items"] == 0
             reviews = [Review.from_json(review) for
                        review in json_response['items'] if "text" in review]
+            json_product = json_response['header_item']
+            if json_product is not None:
+                product = Product.from_json(json_product)
+                DbManager.add_product(product)
             if len(reviews) > 0:
                 domain = reviews[0].domain
                 company_name = NetworkUtils.extract_company_name(domain)

@@ -1,0 +1,41 @@
+name:
+  css: '#productTitle'
+  xpath: null
+  type: Text
+price:
+  css: '#price_inside_buybox'
+  xpath: null
+  type: Text
+short_description:
+  css: '#featurebullets_feature_div'
+  xpath: null
+  type: Text
+images:
+  css: '.imgTagWrapper img'
+  xpath: null
+  type: Attribute
+  attribute: data-a-dynamic-image
+rating:
+  css: 'span.a-size-base span.a-size-medium'
+  xpath: null
+  type: Text
+number_of_reviews:
+  css: 'div.a-row.a-spacing-medium span.a-size-base'
+  xpath: null
+  type: Text
+product_description:
+  css: '#productDescription'
+  xpath: null
+  type: Text
+link_to_all_reviews:
+  css: 'div.card-padding a.a-link-emphasis'
+  xpath: null
+  type: Link
+details:
+  css: 'div#prodDetails.a-section'
+  xpath: null
+  type: Text
+alternative_price:
+  css: 'div.olp-text-box span.a-size-base'
+  xpath: null
+  type: Text

@@ -6,30 +6,39 @@
 
 # useful for handling different item types with a single interface
 
-import pymongo
-
-class MongoPipeline:
-
-    collection_name = 'scrapy_items'
-
-    def __init__(self, mongo_uri, mongo_db):
-        self.mongo_uri = mongo_uri
-        self.mongo_db = mongo_db
-
-    @classmethod
-    def from_crawler(cls, crawler):
-        return cls(
-            mongo_uri=crawler.settings.get('mongodb://gloover_user:password1@localhost:27017'),
-            mongo_db=crawler.settings.get('gloover_db', 'items')
-        )
-
-    def open_spider(self, spider):
-        self.client = pymongo.MongoClient(self.mongo_uri)
-        self.db = self.client[self.mongo_db]
-
-    def close_spider(self, spider):
-        self.client.close()
+class PricePipeline:
+    vat_factor = 1.15
 
     def process_item(self, item, spider):
-        self.db[self.collection_name].insert_one(item)
-        return item
+        adapter = item
+        if adapter.get('price'):
+            if adapter.get('price_excludes_vat'):
+                adapter['price'] = adapter['price'] * self.vat_factor
+            return item
+        else:
+            raise Exception(f"Missing price in {item}")
+
+
+if __name__ == "__main__":
+    important_datails = ["manufacturer", "item model number", "brand"]
+    text = "Product information" \
+           "Color:13.3 Inch 2K Portable Monitor Product\n" \
+           "Dimensions 10.37 x 7.83 x 0.35 inches\n " \
+           "Item Weight 1.65 pounds\n" \
+           "Manufacturer Magedok\n " \
+           "ASIN B07YCY9N31\n " \
+           "Item model number 1332K-5\n " \
+           "Customer Reviews\n " \
+           "4.2 out of 5 stars\n " \
+           "137 ratings\n" \
+           "4.2 out of 5 stars\n " \
+           "Best Sellers Rank #25,291 in Electronics (See Top 100 in Electronics)\n " \
+           "#802 in Computer Monitors\n " \
+           "Date First Available September 25, 2019\n " \
+           "Feedback Would you like to tell us about a lower price?\n "
+    res = {}
+    for a in text.lower().split("\n"):
+        for detail in important_datails:
+            if detail in a:
+                res[detail] = (a.replace(detail, "").strip())
+    print(res)

@@ -11,10 +11,10 @@ class ScrapemeSpider(scrapy.Spider):
     iterations = 0
     # Create Extractor for listing page
     listing_page_extractor = selectorlib.Extractor.from_yaml_file(
-        os.path.join(os.path.dirname(__file__), '../configurations/scrapme/ListingPage.yml'))
+        os.path.join(os.path.dirname(__file__), '../templates/scrapme/ListingPage.yml'))
     # Create Extractor for product page
     product_page_extractor = selectorlib.Extractor.from_yaml_file(
-        os.path.join(os.path.dirname(__file__), '../configurations/scrapme/ProductPage.yml'))
+        os.path.join(os.path.dirname(__file__), '../templates/scrapme/ProductPage.yml'))
 
     def parse(self, response):
         # Extract data using Extractor

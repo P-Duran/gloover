@@ -12,10 +12,27 @@ scraper_service = ScraperService()
 def get_reviews():
     limit = int(request.args.get('limit', 1000))
     page = int(request.args.get('page', 1))
-    _reviews, _pagination = DatabaseService.get_reviews("0", limit, page)
+    asin = request.args.get('asin', None)
+    _reviews, _pagination = DatabaseService.get_reviews(asin, limit, page)
     return jsonify(
         items=_reviews,
         pagination=_pagination
+    )
+
+
+@database_api.route('/products', methods=['GET'])
+def get_products():
+    products = DatabaseService.get_products()
+    return jsonify(
+        items=products,
+    )
+
+
+@database_api.route('/products/<asin>', methods=['GET'])
+def get_product(asin):
+    products = DatabaseService.get_products(asin)
+    return jsonify(
+        items=products,
     )
 
 
