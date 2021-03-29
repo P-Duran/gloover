@@ -4,6 +4,7 @@ from pymongo.errors import BulkWriteError
 
 import gloover_ws.app
 from gloover_model.exceptions.document_already_exists_exception import DocumentAlreadyExistsException
+from gloover_model.serialization.product import Product
 from gloover_model.serialization.product_feature import ProductFeature
 from gloover_model.serialization.review import Review
 from gloover_model.serialization.webpage import WebPage
@@ -34,10 +35,31 @@ class DbManager:
             already exists""", e)
 
     @classmethod
+    def add_product(cls, product: Product):
+        try:
+            gloover_ws.app.db.products.create_index([("asin", -1)], unique=True)
+            gloover_ws.app.db.products.insert_one(product)
+        except Exception as e:
+            raise DocumentAlreadyExistsException("""Product with "asin": """ + product.asin + """" 
+            already exists""", e)
+
+    @classmethod
     def get_reviews(cls, asin=None, limit=0, page=1) -> List[Review]:
+        search_filter = None
+        if asin is not None:
+            search_filter = {'asin': asin}
         skips = limit * (page - 1)
-        cursor = gloover_ws.app.db.reviews.find().skip(skips).limit(limit)
+        cursor = gloover_ws.app.db.reviews.find(search_filter).skip(skips).limit(limit)
         return [Review.from_json(review) for review in cursor]
+
+    @classmethod
+    def get_products(cls, asin=None) -> List[Product]:
+        search_filter = None
+        if asin is not None:
+            search_filter = {'asin': asin}
+        products = gloover_ws.app.db.products.find(search_filter)
+        Logger.log_warning(products)
+        return [Product.from_json(product) for product in products]
 
     @classmethod
     def get_collection_statistics(cls, collection: str):

@@ -20,10 +20,13 @@ class ScrapedDataService(object):
                 file_path = file
         items = read_container_items(file_path)
         limited_items = items[limit * (page - 1):limit * page]
+        product = None
+        if len(items) > 0:
+            product = items[0]
         pagination = {"page": page, "last_page": ceil(len(items) / limit), "limit": limit,
                       "page_items": len(limited_items),
                       "total_items": len(items)}
-        return limited_items, pagination
+        return product, limited_items, pagination
 
     def get_containers(self, spider: str = None):
         glob_regex = f"generated/{spider}/*.json"
@@ -44,5 +47,3 @@ class ScrapedDataService(object):
                 result[file_spider][file_id] = {"id": file_id, "spider": file_spider, "path": file,
                                                 "last_modified": str(las_modified)}
         return result
-
-

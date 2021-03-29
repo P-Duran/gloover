@@ -10,8 +10,9 @@ class FeatureExtractor(object):
 
     @classmethod
     def extract_features(cls, product_asin: str, reviews: List[Review]) -> Tuple[
-                        List[ProductFeature], List[ProductFeature]]:
-
+        List[ProductFeature], List[ProductFeature]]:
+        if not all(review.asin == product_asin for review in reviews):
+            raise Exception("The reviews are not from the same product with asin '" + product_asin + "'")
         simple_features, complex_features = feature_selector(product_asin, reviews)
         return simple_features, complex_features
 

@@ -69,8 +69,8 @@ def get_containers():
 def get_items(container_id):
     limit = int(request.args.get('limit', 1000))
     page = int(request.args.get('page', 1))
-    limited_items, pagination = scraped_data_service.get_container_items(container_id, limit=limit, page=page)
-    return jsonify(items=limited_items, pagination=pagination)
+    product, limited_items, pagination = scraped_data_service.get_container_items(container_id, limit=limit, page=page)
+    return jsonify(header_item=product, items=limited_items, pagination=pagination)
 
 
 @application.errorhandler(Exception)

@@ -4,6 +4,7 @@ from typing import List, Tuple
 from gloover_model.db_manager import DbManager
 from gloover_model.exceptions.no_results_found_exception import NoResultsFoundException
 from gloover_model.feature_extractor import FeatureExtractor
+from gloover_model.serialization.product import Product
 from gloover_model.serialization.product_feature import FeatureType
 from gloover_model.serialization.review import Review
 
@@ -22,7 +23,15 @@ class DatabaseService(object):
         return reviews, pagination
 
     @classmethod
+    def get_products(cls, asin=None) -> List[Product]:
+        products = DbManager.get_products(asin)
+        return products
+
+    @classmethod
     def update_product_features(cls, asin):
+        if asin is None:
+            raise Exception("asin cant be null")
+
         reviews = DbManager.get_reviews(asin)
         if len(reviews) == 0:
             raise NoResultsFoundException("There are no results for asin '" + asin + "'")
