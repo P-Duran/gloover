@@ -6,10 +6,11 @@ from gloover_model.db_manager import DbManager
 from gloover_model.serialization.product import Product
 from gloover_model.serialization.review import Review
 from gloover_model.serialization.webpage import WebPage
+from gloover_model.singleton.singleton_meta import SingletonMeta
 from gloover_service.utils.network import NetworkUtils
 
 
-class ScraperService:
+class ScraperService(metaclass=SingletonMeta):
     _scraper_url = 'http://gloover_scraper:9080/'
 
     @classmethod

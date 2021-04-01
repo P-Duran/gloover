@@ -4,21 +4,24 @@ import os
 from flask import Flask, jsonify
 from flask_pymongo import PyMongo
 
+from gloover_model.database_instance import DatabaseInstance
 from gloover_model.exceptions.gloover_exception import GlooverException
+
+# ------------------------IMPORTANT INITIALIZATION-----------------------------
+logging.basicConfig(filename='gloover.log', level=logging.WARNING)
+application = Flask(__name__)
+
+application.config["MONGO_URI"] = 'mongodb://' + os.environ['MONGODB_USERNAME'] + ':' + os.environ[
+    'MONGODB_PASSWORD'] + '@' + os.environ['MONGODB_HOSTNAME'] + ':27017/' + os.environ['MONGODB_DATABASE']
+DatabaseInstance(PyMongo(application).db)
+# -------------------------------------------------------------------------
 from gloover_ws.blueprints.classifier_bp import classifier_api
 from gloover_ws.blueprints.database_bp import database_api
 from gloover_ws.blueprints.scraper_bp import scraper_api
 
-logging.basicConfig(filename='gloover.log', level=logging.WARNING)
-application = Flask(__name__)
 application.register_blueprint(classifier_api, url_prefix='/classifier')
 application.register_blueprint(scraper_api, url_prefix='/scraper')
 application.register_blueprint(database_api, url_prefix='/database')
-
-application.config["MONGO_URI"] = 'mongodb://' + os.environ['MONGODB_USERNAME'] + ':' + os.environ[
-    'MONGODB_PASSWORD'] + '@' + os.environ['MONGODB_HOSTNAME'] + ':27017/' + os.environ['MONGODB_DATABASE']
-mongo = PyMongo(application)
-db = mongo.db
 
 
 @application.route('/info', methods=['GET'])
