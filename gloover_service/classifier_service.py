@@ -5,33 +5,33 @@ from typing import List
 
 from gloover_model.classifier import Classifier
 from gloover_model.db_manager import DbManager
+from gloover_model.singleton.singleton_meta import SingletonMeta
 from gloover_service.utils.logger import Logger
 
-classifier = Classifier()
 
-
-class ClassifierService:
+class ClassifierService(metaclass=SingletonMeta):
     _MODEL_REGEX = "([^/]+/)*(?P<id>[^/]+).mdl"
     _MODELS_DIR = "resources/models"
     _MODEL_CONTAINER_REGEX = _MODELS_DIR + "/*.mdl"
 
     def __init__(self):
-        if classifier.model is None:
+        self.classifier = Classifier()
+        if self.classifier.model is None:
             self._initialize_classifier()
 
     def classify(self, texts: List[str]):
-        return classifier.classify(texts)
+        return self.classifier.classify(texts)
 
     def get_current_model(self):
-        return classifier.model_id
+        return self.classifier.model_id
 
     def create_model_from_database(self, model_id):
         reviews = DbManager.get_reviews(limit=5000)
-        model_id, accuracy = classifier.create_model(reviews, model_id=model_id)
+        model_id, accuracy = self.classifier.create_model(reviews, model_id=model_id)
         return model_id, accuracy
 
     def load_model(self, model_id):
-        return classifier.load_model(model_id)
+        return self.classifier.load_model(model_id)
 
     def remove_model(self, model_id):
         file_to_rem = pathlib.Path(self._MODELS_DIR + "/" + model_id + ".mdl")
@@ -63,8 +63,10 @@ class ClassifierService:
     def _initialize_classifier(self):
         Logger.log_warning("initializing Classifier...")
         model = self.get_last_model()
-        if not classifier.load_model(model):
+        if model is None:
             reviews = DbManager.get_reviews(limit=5000)
-            model_id, accuracy = classifier.create_model(reviews)
-            classifier.load_model(model_id)
+            model_id, accuracy = self.classifier.create_model(reviews)
+            self.classifier.load_model(model_id)
             Logger.log_warning(model_id + "::" + accuracy)
+        else:
+            self.classifier.load_model(model)

@@ -7,9 +7,10 @@ from gloover_model.feature_extractor import FeatureExtractor
 from gloover_model.serialization.product import Product
 from gloover_model.serialization.product_feature import FeatureType
 from gloover_model.serialization.review import Review
+from gloover_model.singleton.singleton_meta import SingletonMeta
 
 
-class DatabaseService(object):
+class DatabaseService(metaclass=SingletonMeta):
     @classmethod
     def get_reviews(cls, asin, limit, page) -> Tuple[List[Review], dict]:
         total_reviews = DbManager.get_collection_statistics("reviews")['count']

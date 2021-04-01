@@ -2,7 +2,7 @@ from typing import List, Generator
 
 from pymongo.errors import BulkWriteError
 
-import gloover_ws.app
+from gloover_model.database_instance import DatabaseInstance
 from gloover_model.exceptions.document_already_exists_exception import DocumentAlreadyExistsException
 from gloover_model.serialization.product import Product
 from gloover_model.serialization.product_feature import ProductFeature
@@ -12,6 +12,8 @@ from gloover_service.utils.logger import Logger
 
 
 class DbManager:
+    database = DatabaseInstance().database
+    
     @classmethod
     def add_reviews(cls, reviews: List[Review], webpage: WebPage):
         if len(reviews) == 0:
@@ -23,13 +25,13 @@ class DbManager:
             cls.add_webpage(webpage)
         except DocumentAlreadyExistsException:
             Logger.log_warning("Webpage already exists")
-        gloover_ws.app.db.reviews.insert_many(reviews)
+        cls.database.reviews.insert_many(reviews)
 
     @classmethod
     def add_webpage(cls, webpage: WebPage):
         try:
-            gloover_ws.app.db.websites.create_index([("company_name", -1)], unique=True)
-            gloover_ws.app.db.websites.insert_one(webpage)
+            cls.database.websites.create_index([("company_name", -1)], unique=True)
+            cls.database.websites.insert_one(webpage)
         except Exception as e:
             raise DocumentAlreadyExistsException("""Web page with "company_name": """ + webpage.company_name + """" 
             already exists""", e)
@@ -37,8 +39,8 @@ class DbManager:
     @classmethod
     def add_product(cls, product: Product):
         try:
-            gloover_ws.app.db.products.create_index([("asin", -1)], unique=True)
-            gloover_ws.app.db.products.insert_one(product)
+            cls.database.products.create_index([("asin", -1)], unique=True)
+            cls.database.products.insert_one(product)
         except Exception as e:
             raise DocumentAlreadyExistsException("""Product with "asin": """ + product.asin + """" 
             already exists""", e)
@@ -49,7 +51,7 @@ class DbManager:
         if asin is not None:
             search_filter = {'asin': asin}
         skips = limit * (page - 1)
-        cursor = gloover_ws.app.db.reviews.find(search_filter).skip(skips).limit(limit)
+        cursor = cls.database.reviews.find(search_filter).skip(skips).limit(limit)
         return [Review.from_json(review) for review in cursor]
 
     @classmethod
@@ -57,19 +59,19 @@ class DbManager:
         search_filter = None
         if asin is not None:
             search_filter = {'asin': asin}
-        products = gloover_ws.app.db.products.find(search_filter)
+        products = cls.database.products.find(search_filter)
         Logger.log_warning(products)
         return [Product.from_json(product) for product in products]
 
     @classmethod
     def get_collection_statistics(cls, collection: str):
-        return gloover_ws.app.db.command('collStats', collection)
+        return cls.database.command('collStats', collection)
 
     @classmethod
     def add_product_features(cls, features: List[ProductFeature]):
         try:
-            gloover_ws.app.db.features.create_index([("asin", -1), ("word", -1)], unique=True)
-            gloover_ws.app.db.features.insert_many(features, ordered=False)
+            cls.database.features.create_index([("asin", -1), ("word", -1)], unique=True)
+            cls.database.features.insert_many(features, ordered=False)
             return [f.id for f in features]
         except BulkWriteError as e:
             Logger.log_warning(e.details["writeErrors"][0]['errmsg'])
@@ -78,16 +80,16 @@ class DbManager:
 
     @classmethod
     def get_product_features(cls, asin: str) -> List[ProductFeature]:
-        features = gloover_ws.app.db.features.find({"asin": asin})
+        features = cls.database.features.find({"asin": asin})
         return [ProductFeature.from_json(f) for f in features]
 
     @classmethod
     def add_feature_sentences(cls, feature_sentences: Generator):
         try:
-            gloover_ws.app.db.feature_sentences.create_index(
+            cls.database.feature_sentences.create_index(
                 [("sentence", -1), ("review_id", -1), ("start", -1), ("end", -1)],
                 unique=True)
-            inserted = gloover_ws.app.db.feature_sentences.insert_many(feature_sentences)
+            inserted = cls.database.feature_sentences.insert_many(feature_sentences)
             return 'ok', inserted.inserted_ids
         except BulkWriteError as e:
             Logger.log_warning(e.details["writeErrors"])
