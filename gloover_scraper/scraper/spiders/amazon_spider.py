@@ -13,7 +13,7 @@ from dateutil import parser as dateparser
 class AmazonSpider(scrapy.Spider):
     _COUNTRY_DATE_PATTERN = '.* in (the )?(?P<country>[a-zA-Z ]*) on (?P<date>.*)'
     _POLARITY_PATTERN = '(?P<polarity>[0-9//.]+)[a-z ]*(?P<maxPolarity>[0-9//.]+)[a-z ]*'
-    _ASIN_PATTERN = "https://www.amazon.com(/[a-zA-Z0-9-]+)?/dp/(?P<asin>[A-Z0-9]+)"
+    _ASIN_PATTERN = "https://www.amazon.com/.*dp/(?P<asin>[A-Z0-9]+)"
 
     requests = 0
     name = 'amazon'
