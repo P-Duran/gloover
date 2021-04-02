@@ -29,6 +29,23 @@ class DatabaseService(metaclass=SingletonMeta):
         return products
 
     @classmethod
+    def generate_product_features(cls, asin):
+        if asin is None:
+            raise Exception("asin cant be null")
+        reviews = DbManager.get_reviews(asin)
+        if len(reviews) == 0:
+            raise NoResultsFoundException("There are no results for asin '" + asin + "'")
+
+        simple_features, complex_features = FeatureExtractor.extract_features(reviews=reviews, product_asin=asin)
+        feature_sentences = FeatureExtractor.extract_feature_sentences(simple_features, complex_features, reviews)
+        inserted_simple = DbManager.add_product_features(simple_features)
+        inserted_complex = DbManager.add_product_features(complex_features)
+        if len(simple_features) - len(inserted_simple) != 0 or len(complex_features) - len(inserted_complex) != 0:
+            raise Exception("The features for asin '" + asin + "' are already created")
+        inserted_sentences = DbManager.add_feature_sentences(feature_sentences)
+        return 'ok'
+
+    @classmethod
     def update_product_features(cls, asin):
         if asin is None:
             raise Exception("asin cant be null")
