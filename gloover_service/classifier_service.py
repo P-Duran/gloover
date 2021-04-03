@@ -1,7 +1,9 @@
 import glob
 import pathlib
 import re
-from typing import List
+import sklearn
+import numpy as np
+from typing import List, Generator
 
 from gloover_model.classifier import Classifier
 from gloover_model.db_manager import DbManager
@@ -19,7 +21,7 @@ class ClassifierService(metaclass=SingletonMeta):
         if self.classifier.model is None:
             self._initialize_classifier()
 
-    def classify(self, texts: List[str]):
+    def classify(self, texts: List[str] or Generator):
         return self.classifier.classify(texts)
 
     def get_current_model(self):
@@ -59,6 +61,16 @@ class ClassifierService(metaclass=SingletonMeta):
             return model[0]
         else:
             return None
+
+    def test_model(self, model_id, asin=None):
+        classifier = Classifier()
+        classifier.load_model(model_id)
+        reviews = DbManager.get_reviews(asin, limit=1000)
+        pair_review = [(r.text, 1) if r.polarity >= 2.5 else (r.text, -1) for r in reviews]
+        reviews_t, reviews_p = zip(*pair_review)
+        polarities = classifier.classify(reviews_t)
+        accuracy = sklearn.metrics.accuracy_score(polarities, np.array(reviews_p))
+        return accuracy
 
     def _initialize_classifier(self):
         Logger.log_warning("initializing Classifier...")

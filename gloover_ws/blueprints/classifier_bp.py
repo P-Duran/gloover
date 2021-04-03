@@ -13,7 +13,7 @@ def classify():
     if text is None:
         raise NullRequestArgsException("text was null")
     res = classifier_service.classify([text]).tolist()
-    return jsonify(data={"text": text, "polarity": res[0]})
+    return jsonify(data={"text": text, "polarity": res[0]}, model_id=classifier_service.get_current_model())
 
 
 @classifier_api.route('/models')
@@ -27,18 +27,25 @@ def get_models():
 def add_model():
     model_id = request.form.get('asin', None)
     model_id, accuracy = classifier_service.create_model_from_database(model_id)
-    return jsonify(data={"model_id": model_id, "accuracy": accuracy})
+    return jsonify(data={"model_id": model_id, "accuracy": accuracy}, model_id=classifier_service.get_current_model())
 
 
 @classifier_api.route('/models/<id>', methods=['DELETE'])
 def remove_model(id):
     res = classifier_service.remove_model(id)
-    return jsonify(data=res)
+    return jsonify(data=res, model_id=classifier_service.get_current_model())
 
 
 @classifier_api.route('/models/<id>', methods=['PUT'])
 def load_model(id):
     res = classifier_service.load_model(id)
+    return jsonify(data=res)
+
+
+@classifier_api.route('/models/<id>/test', methods=['GET'])
+def test_model(id):
+    asin = request.args.get('asin', None)
+    res = classifier_service.test_model(id, asin)
     return jsonify(data=res)
 
 
