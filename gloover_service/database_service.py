@@ -37,7 +37,7 @@ class DatabaseService(metaclass=SingletonMeta):
             raise NoResultsFoundException("There are no results for asin '" + asin + "'")
 
         simple_features, complex_features = FeatureExtractor.extract_features(reviews=reviews, product_asin=asin)
-        feature_sentences = FeatureExtractor.extract_feature_sentences(simple_features, complex_features, reviews)
+        feature_sentences = FeatureExtractor.extract_feature_sentences(asin, simple_features, complex_features, reviews)
         inserted_simple = DbManager.add_product_features(simple_features)
         inserted_complex = DbManager.add_product_features(complex_features)
         if len(simple_features) - len(inserted_simple) != 0 or len(complex_features) - len(inserted_complex) != 0:
@@ -76,6 +76,6 @@ class DatabaseService(metaclass=SingletonMeta):
         features = DbManager.get_product_features(asin)
         simple_features = [f for f in features if f.type == FeatureType.SIMPLE]
         complex_features = [f for f in features if f.type == FeatureType.COMPLEX]
-        feature_sentences = FeatureExtractor.extract_feature_sentences(simple_features, complex_features, reviews)
+        feature_sentences = FeatureExtractor.extract_feature_sentences(asin, simple_features, complex_features, reviews)
         inserted_sentences = DbManager.add_feature_sentences(feature_sentences)
         return len(inserted_sentences)

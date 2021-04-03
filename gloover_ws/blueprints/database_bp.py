@@ -35,7 +35,7 @@ def get_product(asin):
 
 
 @database_api.route('/features/generate', methods=['POST'])
-def update_features():
+def generate_features():
     asin = request.form.get('product_asin')
     if not asin:
         raise NullRequestArgsException("product_asin form param can not be null")

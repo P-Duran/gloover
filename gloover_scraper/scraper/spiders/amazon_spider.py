@@ -86,7 +86,7 @@ class AmazonSpider(scrapy.Spider):
         del product['link_to_all_reviews']
         if product['price'] is None:
             product['price'] = product['alternative_price']
-            del product['alternative_price']
+        del product['alternative_price']
         product['images'] = list(json.loads(product['images']).keys())
         product['asin'] = self.asin
         polarity_match = re.search(self._POLARITY_PATTERN, product['rating'])
