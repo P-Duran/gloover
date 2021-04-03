@@ -2,10 +2,8 @@ from flask import Blueprint, jsonify, request
 
 from gloover_model.exceptions.null_request_args_exception import NullRequestArgsException
 from gloover_service.database_service import DatabaseService
-from gloover_service.scraper_service import ScraperService
 
 database_api = Blueprint('database_api', __name__)
-scraper_service = ScraperService()
 
 
 @database_api.route('/reviews', methods=['GET'])
@@ -34,6 +32,15 @@ def get_product(asin):
     return jsonify(
         items=products,
     )
+
+
+@database_api.route('/features/generate', methods=['POST'])
+def generate_features():
+    asin = request.form.get('product_asin')
+    if not asin:
+        raise NullRequestArgsException("product_asin form param can not be null")
+    data = DatabaseService.generate_product_features(asin)
+    return jsonify(data=data)
 
 
 @database_api.route('/features/update', methods=['PUT'])

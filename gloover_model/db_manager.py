@@ -87,9 +87,9 @@ class DbManager:
     def add_feature_sentences(cls, feature_sentences: Generator):
         try:
             cls.database.feature_sentences.create_index(
-                [("sentence", -1), ("review_id", -1), ("start", -1), ("end", -1)],
+                [("sentence", -1), ("review_id", -1), ("feature_id", -1)],
                 unique=True)
-            inserted = cls.database.feature_sentences.insert_many(feature_sentences)
+            inserted = cls.database.feature_sentences.insert_many(feature_sentences, ordered=False)
             return 'ok', inserted.inserted_ids
         except BulkWriteError as e:
             Logger.log_warning(e.details["writeErrors"])

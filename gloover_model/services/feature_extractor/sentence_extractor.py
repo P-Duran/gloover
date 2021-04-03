@@ -44,7 +44,8 @@ def __search_complex_in_text__(text, review_id, words, nlp, result=None):
                     {'sentence': sentence, 'feature-start': start, 'feature-end': end}]
 
 
-def sentence_extractor(reviews: List[Review], s_features: List[ProductFeature], c_features: List[ProductFeature]):
+def sentence_extractor(reviews: List[Review], asin: str, s_features: List[ProductFeature],
+                       c_features: List[ProductFeature]):
     nlp = spacy.load('en')
     simple_features = [f.word for f in s_features]
     complex_features = [f.word for f in c_features]
@@ -53,16 +54,18 @@ def sentence_extractor(reviews: List[Review], s_features: List[ProductFeature], 
     for review in reviews:
         __search_simple_in_text__(review.text, review.review_id, simple_features, nlp, data)
         __search_complex_in_text__(review.text, review.review_id, complex_features, nlp, data)
+    result = []
     for review_id in data.keys():
         for feature in data[review_id].keys():
             for feature_sentence in data[review_id][feature]:
                 try:
                     feature_id = [f.id for f in search_array if f.word == feature][0]
-                    yield FeatureSentence(review_id, feature_id, feature, feature_sentence['sentence'],
-                                          feature_sentence['feature-start'],
-                                          feature_sentence['feature-end'])
+                    result.append(FeatureSentence(review_id, feature_id, asin, feature, feature_sentence['sentence'],
+                                                  feature_sentence['feature-start'],
+                                                  feature_sentence['feature-end']))
                 except Exception:
                     Logger.log_error("'" + feature + "'was not found as a ProductFeature")
+    return result
 
 
 if __name__ == "__main__":
