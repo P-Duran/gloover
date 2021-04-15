@@ -45,10 +45,14 @@ class JobManager(object):
 
     @classmethod
     def job_to_json(cls, job: Job, scrape_template: ScrapeTemplate):
+        trigger = str(job.trigger).split('[')
+        trigger_type = trigger[0].strip()
+        trigger_time = trigger[1].replace(']', "").strip()
         return {
             "id": job.id,
             "name": job.name,
-            "trigger": str(job.trigger),
+            "trigger": trigger_type,
+            "trigger_time": trigger_time,
             "next_run_time": job.next_run_time.strftime(cls._DATETIME_FORMAT),
             "state": 'scheduled',
             "url": scrape_template.url,

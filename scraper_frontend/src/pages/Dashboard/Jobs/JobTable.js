@@ -36,7 +36,7 @@ const StyledTableCell = withStyles((theme) => ({
   }
 }))(TableCell);
 
-const importantCols = ["id", "trigger", "state", "spider"]
+const importantCols = ["id", "trigger", "trigger_time", "state", "spider"]
 
 
 export default function JobTable({ main = false, tableTitle = 'Job Table', filterJobs = (job) => true }) {
@@ -99,7 +99,7 @@ export default function JobTable({ main = false, tableTitle = 'Job Table', filte
 
 
   return (
-    (header && Object.keys(filteredJobs(jobs)).length > 0 || main) ? (<TableContainer className={classes.tableContainer}>
+    (header && Object.keys(filteredJobs(jobs)).length > 0 | main) ? (<TableContainer className={classes.tableContainer}>
       <Box boxShadow={3} borderRadius={16} padding={2}>
         <Table className={classes.table} aria-label="simple table">
           <TableHead>
