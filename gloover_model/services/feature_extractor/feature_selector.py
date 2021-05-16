@@ -107,13 +107,23 @@ def feature_selector(product_asin: str, reviews: List[Review], do_print=False):
             print(result_complex[r] / len(reviews))
 
     simple_features = [
-        ProductFeature(product_asin, s, result[s]['adj_count'] / result[s]['appearances'], FeatureType.SIMPLE)
-        for s in result
-        if result[s]['adj_count'] / result[s]['appearances'] >= 0.25]
+        ProductFeature(
+            product_asin,
+            word,
+            result[word]['adj_count'] / result[word]['appearances'],
+            result[word]['appearances'],
+            FeatureType.SIMPLE)
+        for word in result
+        if result[word]['adj_count'] / result[word]['appearances'] >= 0.25]
     complex_features = [
-        ProductFeature(product_asin, c, min(result_complex[c] / len(reviews), 1), FeatureType.COMPLEX)
-        for c in result_complex
-        if result_complex[c] / len(reviews) >= 0.1]
+        ProductFeature(
+            product_asin,
+            complex_word,
+            min(result_complex[complex_word] / len(reviews), 1),
+            result_complex[complex_word],
+            FeatureType.COMPLEX)
+        for complex_word in result_complex
+        if result_complex[complex_word] / len(reviews) >= 0.1]
 
     return simple_features, complex_features
 

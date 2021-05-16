@@ -1,4 +1,5 @@
 import logging
+import sys
 
 
 class bcolors:
@@ -17,11 +18,14 @@ class Logger:
     @classmethod
     def log_warning(cls, msg):
         logging.warning(bcolors.WARNING + " " + str(msg) + bcolors.ENDC)
+        print(msg, file=sys.stderr)
 
     @classmethod
     def log_error(cls, msg):
         logging.error(msg)
+        print(msg, file=sys.stderr)
 
     @classmethod
     def log_debug(cls, msg):
         logging.debug(msg)
+        print(msg, file=sys.stderr)

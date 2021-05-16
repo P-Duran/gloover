@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 
-from gloover_model.exceptions.null_request_args_exception import NullRequestArgsException
+from gloover_model.exceptions.request_args_exception import RequestArgsException
 from gloover_service.classifier_service import ClassifierService
 
 classifier_api = Blueprint('classifier_api', __name__)
@@ -11,7 +11,7 @@ classifier_service = ClassifierService()
 def classify():
     text = request.form.get('text')
     if text is None:
-        raise NullRequestArgsException("text was null")
+        raise RequestArgsException("text was null")
     res = classifier_service.classify([text]).tolist()
     return jsonify(data={"text": text, "polarity": res[0]}, model_id=classifier_service.get_current_model())
 
@@ -26,7 +26,11 @@ def get_models():
 @classifier_api.route('/models', methods=['POST'])
 def add_model():
     model_id = request.form.get('asin', None)
-    model_id, accuracy = classifier_service.create_model_from_database(model_id)
+    source = request.form.get('source', 'database')
+    if source == 'database':
+        model_id, accuracy = classifier_service.create_model_from_database(model_id)
+    else:
+        model_id, accuracy = classifier_service.create_model_from_file()
     return jsonify(data={"model_id": model_id, "accuracy": accuracy}, model_id=classifier_service.get_current_model())
 
 

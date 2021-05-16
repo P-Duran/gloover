@@ -1,13 +1,15 @@
 import glob
 import pathlib
 import re
-import sklearn
-import numpy as np
 from typing import List, Generator
+
+import numpy as np
+import sklearn
 
 from gloover_model.classifier import Classifier
 from gloover_model.db_manager import DbManager
 from gloover_model.singleton.singleton_meta import SingletonMeta
+from gloover_model.utils.classifier_utils import load_json_as_list_reviews
 from gloover_service.utils.logger import Logger
 
 
@@ -26,6 +28,11 @@ class ClassifierService(metaclass=SingletonMeta):
 
     def get_current_model(self):
         return self.classifier.model_id
+
+    def create_model_from_file(self):
+        reviews = load_json_as_list_reviews('resources/datasets/reviews_Cell_Phones_and_Accessories_5.json')
+        model_id, accuracy = self.classifier.create_model(reviews, model_id="FILE")
+        return model_id, accuracy
 
     def create_model_from_database(self, model_id):
         reviews = DbManager.get_reviews(limit=5000)
