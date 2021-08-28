@@ -51,14 +51,15 @@ class DatabaseService(metaclass=SingletonMeta):
         return DbManager.get_product_features(asin)
 
     @classmethod
-    def get_feature_sentences(cls, asin, feature_id, limit, page) -> Tuple[List[FeatureSentence], dict]:
+    def get_feature_sentences(cls, asin, from_date, to_date, feature_id, limit, page) -> Tuple[
+        List[FeatureSentence], dict]:
         if asin is None:
             total_sentences = DbManager.get_collection_statistics("feature_sentences")['count']
         else:
             total_sentences = 0
             for stat in DbManager.get_feature_sentences_stats(asin):
                 total_sentences += stat['positive'] + stat['negative']
-        feature_sentences = DbManager.get_product_feature_sentences(asin, feature_id, limit, page)
+        feature_sentences = DbManager.get_product_feature_sentences(asin, from_date, to_date, feature_id, limit, page)
         last_page = 1
         if limit > 0:
             last_page = ceil(total_sentences / limit)

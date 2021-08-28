@@ -29,11 +29,11 @@ def get_reviews():
 
 @database_api.route('/reviews/<id>', methods=['GET'])
 def get_review(id):
-
     _reviews = DatabaseService.get_review(id)
     return jsonify(
         items=_reviews
     )
+
 
 @database_api.route('/reviews/statistics', methods=['GET'])
 def get_review_stats():
@@ -71,7 +71,7 @@ def generate_features():
     asin = request.form.get('product_asin')
     if not asin:
         raise RequestArgsException("product_asin form param can not be null")
-    data = DatabaseService.generate_product_features(asin)
+    data = DatabaseService.     generate_product_features(asin)
     return jsonify(items=data)
 
 
@@ -103,8 +103,14 @@ def get_feature_sentences():
     page = int(request.args.get('page', 1))
     asin = request.args.get('asin')
     feature_id = request.args.get('feature_id')
+    from_date = request.args.get('from_date')
+    to_date = request.args.get('to_date')
+    if from_date or to_date:
+        from_date = datetime.strptime(from_date, "%Y-%m-%d")
+        to_date = datetime.strptime(to_date, "%Y-%m-%d")
 
-    _reviews, _pagination = DatabaseService.get_feature_sentences(asin, feature_id, limit, page)
+    _reviews, _pagination = DatabaseService.get_feature_sentences(asin, from_date, to_date,
+                                                                  feature_id, limit, page)
     return jsonify(
         items=_reviews,
         pagination=_pagination

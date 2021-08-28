@@ -52,8 +52,7 @@ def __feature_extractor__(reviews: List[str], simple_features, complex_features=
 
             if token['head'] in nouns and 'JJ' in token['tag']:
                 token['word'] = text[token['start']:token['end']]
-                nouns[token['head']]['adjectives'] = nouns[token['head']
-                                                     ]['adjectives'] + [token]
+                nouns[token['head']]['adjectives'] = nouns[token['head']]['adjectives'] + [token]
         for index in nouns:
             word_data = nouns[index]
             word = nouns[index]['word']

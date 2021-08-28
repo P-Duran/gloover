@@ -128,13 +128,14 @@ class DbManager:
             return [f.id for f in features if f.id not in duplicated]
 
     @classmethod
-    def get_product_feature_sentences(cls, asin=None, feature_id=None, limit=0, page=1) -> List[FeatureSentence]:
+    def get_product_feature_sentences(cls, asin=None, from_date=None, to_date=None, feature_id=None, limit=0, page=1) -> List[FeatureSentence]:
         search_filter = {}
         if asin is not None:
             search_filter["asin"] = asin
         if feature_id is not None:
             search_filter["feature_id"] = feature_id
-
+        if from_date and to_date:
+            search_filter["date"] = {"$gte": from_date, "$lt": to_date}
         skips = limit * (page - 1)
         cursor = cls.database.feature_sentences.find(search_filter).skip(skips).limit(limit)
         return [FeatureSentence.from_json(fs) for fs in cursor]

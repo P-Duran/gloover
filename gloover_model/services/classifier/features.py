@@ -9,7 +9,7 @@ import swifter #Do Not Delete
 
 
 class TotalSentimentScore(BaseEstimator, TransformerMixin):
-    """Takes in dataframe, extracts road name column, outputs average word length"""
+    """Calculates sentiment score based on sentiwords1_1"""
 
     def __init__(self):
         self.senti_class = SentimentScorer('resources/lexicons/SentiWords_1.1.txt')
@@ -39,7 +39,7 @@ class TotalSentimentScore(BaseEstimator, TransformerMixin):
 
 
 class PercentageContextNegative(BaseEstimator, TransformerMixin):
-    """Takes in dataframe, extracts road name column, outputs average word length"""
+    """Eso mismo"""
 
     def __init__(self):
         # No initialization needed
@@ -61,14 +61,13 @@ class PercentageContextNegative(BaseEstimator, TransformerMixin):
 
 
 class NegateWordsContext(BaseEstimator, TransformerMixin):
-    """Takes in dataframe, extracts road name column, outputs average word length"""
+    """Transforms text into text with negative context words with a NEG in front"""
 
     def __init__(self):
         # No initialization needed
         pass
 
     def add_negated_tag_words(self, text):
-        """Helper code to compute average word length of a name"""
         c = extract_ordered_contexts(text)
         result = ""
         for sen in c:
@@ -90,7 +89,7 @@ class NegateWordsContext(BaseEstimator, TransformerMixin):
 
 
 class PosTagCounter(BaseEstimator, TransformerMixin):
-    """Takes in dataframe, extracts road name column, outputs average word length"""
+    """Number of nouns, verbs and adjectives"""
 
     def __init__(self):
         # No initialization needed
@@ -115,7 +114,7 @@ class PosTagCounter(BaseEstimator, TransformerMixin):
 
 
 class WordsExtractor(BaseEstimator, TransformerMixin):
-    """Takes in dataframe, extracts road name column, outputs average word length"""
+    """Extrae el texto en tokens"""
 
     def __init__(self):
         # No initialization needed
@@ -143,12 +142,6 @@ class WordsExtractor(BaseEstimator, TransformerMixin):
     def __init__(self):
         # No initialization needed
         pass
-
-    def word_extractor(self, text):
-        """Helper code to compute average word length of a name"""
-        tokens = remove_noise(text)
-
-        return tokens
 
     def transform(self, df, y=None):
         """The workhorse of this feature extractor"""

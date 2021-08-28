@@ -6,11 +6,11 @@ scraper_api = Blueprint('scraper_api', __name__)
 scraper_service = ScraperService()
 
 
-@scraper_api.route('/crawl')
+@scraper_api.route('/crawl', methods=['POST'])
 def crawl_url():
     url = request.form.get('url')
     max_requests = request.form.get('max_requests')
-    spider = request.form.get('spider_name')
+    spider = request.form.get('spider')
     trigger = request.form.get('trigger')
     trigger_option = request.form.get('trigger_option')
 
