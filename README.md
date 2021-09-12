@@ -14,6 +14,8 @@ To install and run the project you will need the following:
 
 * python
 * Docker & Docker compose
+* The SentiWords_1.1 file in resources/lexicons/SentiWords_1.1.txt
+* The dataset Cell_Phones_and_Accessories_5 in resources/datasets/reviews_Cell_Phones_and_Accessories_5.json
 
 
 ### Installing
